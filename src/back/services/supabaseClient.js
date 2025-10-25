@@ -15,6 +15,13 @@ if (!supabaseUrl || !supabaseServiceKey) {
     process.exit(1); // Encerra a aplicação se as chaves não estiverem configuradas
 }
 
+// Verifica se a chave parece ser uma chave de serviço ou secret key
+if (!supabaseServiceKey.includes('service_role') && !supabaseServiceKey.startsWith('sb_secret_')) {
+    console.error("⚠️ AVISO: A chave do Supabase não parece ser uma chave de serviço ou secret key!");
+    console.error("Certifique-se de usar SUPABASE_SERVICE_ROLE_KEY correta");
+    process.exit(1);
+}
+
 // Inicializa o cliente Supabase com a URL e a chave de serviço
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     // Opção importante para o backend: desativa a renovação automática de token

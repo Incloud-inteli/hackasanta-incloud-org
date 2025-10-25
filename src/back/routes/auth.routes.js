@@ -23,18 +23,18 @@ function createAuthRoutes(db) { // Envelopado na função fábrica
 
       console.log('[DEBUG] Verificando método disponível para criação de usuário');
       
-      if (supabase.auth && supabase.auth.admin && typeof supabase.auth.admin.createUser === 'function') {
-        console.log('[DEBUG] Usando método admin.createUser');
-        createResult = await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: false
-        });
-      } else {
-        console.log('[DEBUG] Usando método fallback signUp');
-        // Fallback para signUp com service key (deve funcionar com chave de serviço)
-        createResult = await supabase.auth.signUp({ email, password });
-      }
+      console.log('[DEBUG] Tentando criar usuário com signUp');
+      createResult = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            nomeCompleto: nomeCompleto, // Exatamente como está no trigger
+            cpf: cpf,
+            telefone: telefone
+          }
+        }
+      });
       
       console.log('[DEBUG] Resultado da criação:', {
         error: createResult.error ? 'Sim' : 'Não',
@@ -50,17 +50,13 @@ function createAuthRoutes(db) { // Envelopado na função fábrica
       if (!createdUser) return res.status(500).json({ error: 'Usuário criado mas dados retornados incompletos.' });
 
       console.log('[DEBUG] Preparando para inserir perfil do usuário');
-      // Insere um registro de perfil na tabela `UsuariosSistema`.
-      // Observação: alguns esquemas podem ter colunas NOT NULL (ex: SenhaHash).
-      // Para evitar falhas de constraint, fornecemos valores defaults mínimos.
+      // Insere um registro de perfil na tabela `perfis`
       const profile = {
-        Email: email,
-        AuthExternaID: createdUser.id,
-        NomeCompleto: nomeCompleto || '',
-        CPF: cpf || '',
-        Telefone: telefone || '',
-        SenhaHash: '' , // placeholder para caso a coluna seja NOT NULL no esquema
-        DataCadastroSistema: new Date().toISOString()
+        id: createdUser.id,
+        nome_completo: nomeCompleto,
+        cpf: cpf,
+        telefone: telefone
+        // created_at será preenchido automaticamente pelo PostgreSQL
       };
       
       console.log('[DEBUG] Dados do perfil a serem inseridos:', {
@@ -69,7 +65,7 @@ function createAuthRoutes(db) { // Envelopado na função fábrica
       });
 
       const { data: profileData, error: profileError } = await supabase
-        .from('UsuariosSistema')
+        .from('perfis')
         .insert([profile])
         .select()
         .single();

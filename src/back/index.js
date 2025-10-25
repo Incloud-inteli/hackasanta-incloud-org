@@ -53,6 +53,10 @@ app.use('/api/prontuarios', createProntuarioRoutes(supabase));
 app.use('/api/transcritores', createTranscritorRoutes(supabase));
 app.use('/api/auth', createAuthRoutes(supabase)); // Passa o cliente Supabase para Auth também
 app.use('/api/users', createUserRoutes(supabase));
+
+// Adiciona a rota de teste
+const testRoutes = require('./routes/test.js');
+app.use('/api/test', testRoutes);
 console.log("👍 Todas as rotas foram registradas.");
 
 // --- Inicialização do Servidor ---
