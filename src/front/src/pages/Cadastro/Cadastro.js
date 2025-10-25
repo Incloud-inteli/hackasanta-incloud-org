@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabaseClient';
+// Registration now goes through our backend to use the service role safely
 import './Cadastro.css';
 
 const Cadastro = () => {
@@ -31,43 +31,33 @@ const Cadastro = () => {
     console.log('[CADASTRO] Iniciando cadastro...', formData.email);
 
     try {
-      // 1️⃣ Cria o usuário no Supabase (autenticação)
-      const { data, error } = await supabase.auth.signUp({
+      // 1️⃣ Envia os dados para o backend, que cria o usuário via Service Role Key
+      const registerPayload = {
         email: formData.email,
         password: formData.senha,
+        nomeCompleto: formData.nomeCompleto,
+        cpf: formData.cpf,
+        telefone: formData.telefone
+      };
+
+      const response = await fetch('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerPayload),
       });
 
-      if (error) {
-        console.error('[CADASTRO] Erro Supabase:', error);
-        alert(`Erro ao cadastrar: ${error.message}`);
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        const text = json?.error || json?.message || (await response.text());
+        console.error('[CADASTRO] Erro do backend:', text);
+        alert(`Erro ao cadastrar: ${text}`);
         setLoading(false);
         return;
       }
 
-      console.log('[CADASTRO] Usuário criado no Supabase:', data?.user?.id);
+      const resBody = await response.json();
+      console.log('[CADASTRO] Usuário criado via backend:', resBody);
 
-      // 2️⃣ Envia os dados complementares para o backend (MongoDB)
-      const userData = {
-        supabaseId: data?.user?.id,
-        nomeCompleto: formData.nomeCompleto,
-        cpf: formData.cpf,
-        email: formData.email,
-        telefone: formData.telefone,
-        criadoEm: new Date(),
-      };
-
-      const response = await fetch('http://localhost:3001/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Erro no servidor: ${text}`);
-      }
-
-      console.log('[CADASTRO] Usuário salvo no banco com sucesso.');
       alert('Usuário cadastrado com sucesso! Verifique seu email se for necessário confirmar.');
 
       navigate('/login');

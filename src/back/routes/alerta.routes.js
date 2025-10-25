@@ -1,17 +1,17 @@
 const express = require('express');
-const { ObjectId } = require('mongodb');
 const createAlertaModel = require('../models/alerta.model.js');
 
-function createAlertaRoutes(db) {
+function createAlertaRoutes() {
   const router = express.Router();
-  const alertaModel = createAlertaModel(db);
+  const alertaModel = createAlertaModel();
 
   router.post('/', async (req, res) => {
     try {
-      const result = await alertaModel.create(req.body);
-      res.status(201).json({ message: "Alerta criado com sucesso!", insertedId: result.insertedId });
+      const alerta = await alertaModel.create(req.body);
+      res.status(201).json({ message: "Alerta criado com sucesso!", alerta });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Erro ao criar alerta:', err);
+      res.status(500).json({ error: 'Erro ao criar alerta' });
     }
   });
 
@@ -21,25 +21,21 @@ function createAlertaRoutes(db) {
       let alertas;
 
       if (pacienteId) {
-        if (!ObjectId.isValid(pacienteId)) {
-          return res.status(400).json({ message: 'ID de paciente inválido.' });
-        }
+        // Não precisa mais validar ObjectId, pois o Supabase usa UUID ou números inteiros
         alertas = await alertaModel.getAllByPacienteId(pacienteId);
       } else {
         alertas = await alertaModel.getAll();
       }
       res.status(200).json(alertas);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Erro ao buscar alertas:', err);
+      res.status(500).json({ error: 'Erro ao buscar alertas' });
     }
   });
 
   router.get('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      if (!ObjectId.isValid(id)) {
-        return res.status(400).json({ message: 'ID inválido.' });
-      }
       const alerta = await alertaModel.getById(id);
       if (alerta) {
         res.status(200).json(alerta);
@@ -47,24 +43,23 @@ function createAlertaRoutes(db) {
         res.status(404).json({ message: 'Alerta não encontrado.' });
       }
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Erro ao buscar alerta:', err);
+      res.status(500).json({ error: 'Erro ao buscar alerta' });
     }
   });
 
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      if (!ObjectId.isValid(id)) {
-        return res.status(400).json({ message: 'ID inválido.' });
-      }
-      const result = await alertaModel.updateById(id, req.body);
-      if (result.matchedCount > 0) {
-        res.status(200).json({ message: 'Alerta atualizado com sucesso.' });
+      const alerta = await alertaModel.updateById(id, req.body);
+      if (alerta) {
+        res.status(200).json({ message: 'Alerta atualizado com sucesso.', alerta });
       } else {
         res.status(404).json({ message: 'Alerta não encontrado.' });
       }
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Erro ao atualizar alerta:', err);
+      res.status(500).json({ error: 'Erro ao atualizar alerta' });
     }
   });
 

@@ -1,73 +1,74 @@
-// src/back/index.js - VERSÃO DE DEBUG PARA ACHAR O ARQUIVO COM ERRO
+// src/back/index.js - VERSÃO CORRIGIDA PARA SUPABASE
 
 const express = require('express');
 const cors = require('cors');
-const { MongoClient } = require('mongodb');
+const { createClient } = require('@supabase/supabase-js'); // Importa o cliente Supabase
 const dotenv = require('dotenv');
 
 dotenv.config();
 
-console.log("🔎 Iniciando importações...");
+// Importação das fábricas de rotas (continuam iguais)
 const createPacienteRoutes = require('./routes/paciente.routes.js');
-console.log("  - ✅ Carregou paciente.routes.js");
 const createAtendimentoRoutes = require('./routes/atendimento.routes.js');
-console.log("  - ✅ Carregou atendimento.routes.js");
-const createProfissionalRoutes = require('./routes/profissional.routes.js');
-console.log("  - ✅ Carregou profissional.routes.js");
+// const createProfissionalRoutes = require('./routes/profissional.routes.js'); // Removido se não for usar
 const createResponsavelRoutes = require('./routes/responsavel.routes.js');
-console.log("  - ✅ Carregou responsavel.routes.js");
 const createAlertaRoutes = require('./routes/alerta.routes.js');
-console.log("  - ✅ Carregou alerta.routes.js");
 const createProntuarioRoutes = require('./routes/prontuario.routes.js');
-console.log("  - ✅ Carregou prontuario.routes.js");
 const createTranscritorRoutes = require('./routes/transcritor.routes.js');
-console.log("  - ✅ Carregou transcritor.routes.js");
 const createAuthRoutes = require('./routes/auth.routes.js');
-console.log("  - ✅ Carregou auth.routes.js");
 const createUserRoutes = require('./routes/user.routes.js');
-console.log("  - ✅ Carregou user.routes.js");
-console.log("👍 Todas as importações foram encontradas!");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const mongoUri = process.env.MONGO_URI;
-const client = new MongoClient(mongoUri);
-const dbName = 'previvai';
 
-async function run() {
-  try {
-    await client.connect();
-    console.log('✅ Conectado com sucesso ao banco de dados!');
-    const db = client.db(dbName);
+// --- INICIALIZAÇÃO DO CLIENTE SUPABASE ---
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Usa a chave de serviço no backend
 
-    app.use(cors());
-    app.use(express.json());
-
-    app.get('/', (req, res) => {
-      res.json({ message: '🚀 API Previvai está no ar!' });
-    });
-
-    console.log("⚙️  Registrando rotas...");
-    app.use('/api/pacientes', createPacienteRoutes(db));
-    app.use('/api/atendimento', createAtendimentoRoutes(db));
-    app.use('/api/profissionais', createProfissionalRoutes(db));
-    app.use('/api/responsaveis', createResponsavelRoutes(db));
-    app.use('/api/alertas', createAlertaRoutes(db));
-    app.use('/api/prontuarios', createProntuarioRoutes(db));
-    app.use('/api/transcritores', createTranscritorRoutes(db));
-    app.use('/api/auth', createAuthRoutes(db));
-    app.use('/api/users', createUserRoutes(db));
-    console.log("👍 Todas as rotas foram registradas com sucesso!");
-
-
-    app.listen(PORT, () => {
-      console.log(`🌐 Servidor rodando na porta ${PORT}`);
-    });
-
-  } catch (err) {
-    console.error('❌ Erro na inicialização:', err);
-    process.exit(1);
-  }
+if (!supabaseUrl || !supabaseKey) {
+  console.error("❌ Erro: Variáveis de ambiente SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias!");
+  process.exit(1);
 }
 
-run();
+const supabase = createClient(supabaseUrl, supabaseKey);
+console.log('✅ Cliente Supabase inicializado.');
+
+// --- Middlewares ---
+app.use(cors());
+app.use(express.json());
+
+// --- Rotas da Aplicação ---
+app.get('/', (req, res) => {
+  res.json({ message: '🚀 API Previvai está no ar! (Backend com Supabase)' });
+});
+
+// --- REGISTRO DAS ROTAS ---
+// Passamos a instância do cliente 'supabase' para as rotas que precisam interagir com o banco
+app.use('/api/pacientes', createPacienteRoutes(supabase));
+app.use('/api/atendimentos', createAtendimentoRoutes(supabase));
+// app.use('/api/profissionais', createProfissionalRoutes(supabase)); // Removido se não for usar
+app.use('/api/responsaveis', createResponsavelRoutes(supabase));
+app.use('/api/alertas', createAlertaRoutes(supabase));
+app.use('/api/prontuarios', createProntuarioRoutes(supabase));
+app.use('/api/transcritores', createTranscritorRoutes(supabase));
+app.use('/api/auth', createAuthRoutes(supabase)); // Passa o cliente Supabase para Auth também
+app.use('/api/users', createUserRoutes(supabase));
+
+// Adiciona a rota de teste
+const testRoutes = require('./routes/test.js');
+app.use('/api/test', testRoutes);
+console.log("👍 Todas as rotas foram registradas.");
+
+// --- Inicialização do Servidor ---
+app.listen(PORT, () => {
+  console.log(`🌐 Servidor rodando na porta ${PORT}`);
+});
+
+// Tratamento de erros não capturados (opcional mas bom ter)
+process.on('uncaughtException', (error) => {
+  console.error('💥 Erro não capturado:', error);
+  // process.exit(1); // Descomente se quiser derrubar o servidor em caso de erro grave
+});
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 Rejeição não tratada:', reason);
+});
