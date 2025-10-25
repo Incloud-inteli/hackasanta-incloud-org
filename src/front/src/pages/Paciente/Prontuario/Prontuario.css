@@ -1,0 +1,258 @@
+.prontuario-page {
+  padding: 40px;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.prontuario-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Progress Bar Section - Padronizado igual ao Menu */
+.progress-section {
+  margin-bottom: 3rem;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.progress-label {
+  font-size: 1.125rem;
+  color: #6b7280;
+}
+
+.progress-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 1rem;
+  background-color: #d1d5db;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #90c695, #6b8e6f);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+/* Cards */
+.prontuario-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.prontuario-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #5b6fd8;
+  margin-bottom: 1.5rem;
+}
+
+.card-header-with-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.card-header-with-button .card-title {
+  margin-bottom: 0;
+}
+
+.btn-edit-toggle {
+  background-color: #e0e7ff;
+  color: #5b6fd8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-edit-toggle:hover {
+  background-color: #c7d2fe;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-save-edit {
+  background-color: #86efac;
+  color: #1f2937;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-save-edit:hover {
+  background-color: #6ee7a0;
+}
+
+.btn-cancel-edit {
+  background-color: #fecaca;
+  color: #b91c1c;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-cancel-edit:hover {
+  background-color: #fca5a5;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.data-row {
+  font-size: 1.125rem;
+  color: #111827;
+  line-height: 1.6;
+}
+
+.data-label {
+  font-weight: 600;
+}
+
+.data-row-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.data-input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.data-input:focus {
+  border-color: #5b6fd8;
+  box-shadow: 0 0 0 3px rgba(91, 111, 216, 0.1);
+}
+
+.btn-complete-profile {
+  background-color: #5b6fd8;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 1.5rem;
+}
+
+.btn-complete-profile:hover {
+  background-color: #4a5bc4;
+}
+
+.btn-complete-profile:active {
+  transform: scale(0.98);
+}
+
+/* Two Column Grid */
+.cards-grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .prontuario-page {
+    padding: 2rem;
+  }
+
+  .prontuario-title {
+    font-size: 2rem;
+  }
+
+  .cards-grid-two {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .prontuario-page {
+    padding: 1.5rem;
+  }
+
+  .prontuario-title {
+    font-size: 1.75rem;
+  }
+
+  .cards-grid-two {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+
+  .data-row {
+    font-size: 1rem;
+  }
+
+  .prontuario-card {
+    padding: 1.5rem;
+  }
+}

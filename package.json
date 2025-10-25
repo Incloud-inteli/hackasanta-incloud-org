@@ -1,0 +1,25 @@
+{
+  "name": "code4cancer-incloud",
+  "version": "1.0.0",
+  "description": "Projeto web desenvolvido com Node.js e React para auxiliar no combate ao câncer.",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "cd src/back && npm install && cd ../front && npm install",
+    "start-back": "cd src/back && npm start",
+    "start-front": "cd src/front && npm start",
+    "dev-back": "cd src/back && npm run dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "react",
+    "express",
+    "healthcare"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.75.0",
+    "dotenv": "^17.2.3"
+  }
+}

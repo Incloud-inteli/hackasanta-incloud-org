@@ -1,0 +1,308 @@
+.ficha-page {
+  padding: 40px;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.ficha-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+/* Who Are You Section */
+.who-are-you-section {
+  margin-bottom: 2rem;
+}
+
+.section-subtitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1rem;
+}
+
+.who-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.who-btn {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  border: 2px solid #c7d2fe;
+  background-color: white;
+  color: #5b6fd8;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.who-btn.active {
+  background-color: #c7d2fe;
+  color: #5b6fd8;
+  font-weight: 600;
+}
+
+.who-btn:hover {
+  background-color: #e0e7ff;
+}
+
+/* Parentesco Dropdown */
+.parentesco-dropdown {
+  margin-top: 1.5rem;
+  max-width: 400px;
+}
+
+.form-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.form-select:focus {
+  border-color: #5b6fd8;
+  box-shadow: 0 0 0 3px rgba(91, 111, 216, 0.1);
+}
+
+.form-select option {
+  padding: 0.5rem;
+}
+
+/* Form Cards */
+.form-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.form-card-compact {
+  align-self: flex-start;
+  width: 50rem;
+}
+
+.card-section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #5b6fd8;
+  margin-bottom: 1.5rem;
+}
+
+/* Form Grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.form-grid-single {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus {
+  border-color: #5b6fd8;
+  box-shadow: 0 0 0 3px rgba(91, 111, 216, 0.1);
+}
+
+.form-input-wide {
+  grid-column: span 2;
+}
+
+/* Two Column Grid for Medical/Family History */
+.two-column-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Right Column Stack */
+.right-column-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100%;
+}
+
+.right-column-stack .form-card-compact {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-column-stack .form-card-compact .form-grid-single {
+  flex: 1;
+}
+
+/* Add Contact Button */
+.btn-add-contact {
+  background: none;
+  border: none;
+  color: #5b6fd8;
+  font-size: 1rem;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  transition: color 0.2s;
+}
+
+.btn-add-contact:hover {
+  color: #4a5bc4;
+}
+
+/* Contact Group */
+.contact-group {
+  margin-bottom: 1.5rem;
+}
+
+.contact-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.contact-number {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #5b6fd8;
+}
+
+.btn-remove-contact {
+  background-color: #fecaca;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-remove-contact:hover {
+  background-color: #fca5a5;
+}
+
+.contact-divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5rem 0;
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.btn-save {
+  background-color: #5b6fd8;
+  color: white;
+  font-size: 1.125rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  padding: 1rem 3rem;
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.btn-save:hover {
+  background-color: #4a5bc4;
+}
+
+.btn-save:active {
+  transform: scale(0.98);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .ficha-page {
+    padding: 2rem;
+  }
+
+  .ficha-title {
+    font-size: 2rem;
+  }
+
+  .two-column-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .ficha-page {
+    padding: 1.5rem;
+  }
+
+  .ficha-title {
+    font-size: 1.75rem;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-input-wide {
+    grid-column: span 1;
+  }
+
+  .two-column-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .who-buttons {
+    flex-direction: column;
+  }
+
+  .who-btn {
+    width: 100%;
+  }
+
+  .form-card {
+    padding: 1.5rem;
+  }
+}
