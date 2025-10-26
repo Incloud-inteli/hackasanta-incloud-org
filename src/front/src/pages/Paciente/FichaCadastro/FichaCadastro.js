@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import pacienteService from '../../../services/pacienteService';
-import prontuarioService from '../../../services/prontuarioService';
 import { supabase } from '../../../services/supabaseClient';
 import './FichaCadastro.css';
 
@@ -17,7 +16,7 @@ const initialState = {
         email: '',
         telefone: '',
         genero: '',
-        endereco: '',
+        cep: '',
         estadoCivil: '',
         raca: '',
         profissao: '',
@@ -138,20 +137,14 @@ const FichaCadastro = () => {
                 await pacienteService.update(pacienteId, dadosParaSalvar);
             } else {
                 const result = await pacienteService.create(dadosParaSalvar);
-                // Cria prontuário apenas na criação do paciente
-                await prontuarioService.create({ pacienteId: result.ID_Paciente });
             }
 
             alert('Ficha médica salva com sucesso!');
             navigate('/prontuario');
         } catch (error) {
             console.error('Erro ao salvar ficha:', error);
-            // Tratamento especial para erro de paciente já existente
-            if (error?.response?.data?.code === '23505') {
-                alert('Já existe uma ficha cadastrada para este usuário!\n\nSe precisar atualizar seus dados, utilize a opção de edição.');
-            } else {
-                alert('Erro ao salvar ficha. Veja o console para detalhes.');
-            }
+            console.error('Erro completo:', error.response);
+            alert('Erro ao salvar ficha. Veja o console para detalhes.');
         }
     };
     
@@ -281,10 +274,25 @@ const FichaCadastro = () => {
                         <label className="form-label">Profissão</label>
                         <input type="text" className="form-input" value={formData.dadosPessoais.profissao} onChange={e => handleChange('dadosPessoais', 'profissao', e.target.value)} />
                     </div>
-                    {/* Endereço */}
+                    {/* CEP */}
                     <div className="form-field">
-                        <label className="form-label">Endereço</label>
-                        <input type="text" className="form-input" value={formData.dadosPessoais.endereco} onChange={e => handleChange('dadosPessoais', 'endereco', e.target.value)} />
+                        <label className="form-label">CEP</label>
+                        <input 
+                            type="text" 
+                            className="form-input" 
+                            value={formData.dadosPessoais.cep} 
+                            onChange={e => {
+                                const valor = e.target.value.replace(/\D/g, '');
+                                if (valor.length <= 8) {
+                                    const cepFormatado = valor.length > 5 
+                                        ? `${valor.slice(0, 5)}-${valor.slice(5)}`
+                                        : valor;
+                                    handleChange('dadosPessoais', 'cep', cepFormatado);
+                                }
+                            }}
+                            placeholder="00000-000"
+                            maxLength="9"
+                        />
                     </div>
                     {/* Tipo Sanguíneo */}
                     <div className="form-field">

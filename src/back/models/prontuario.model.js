@@ -6,6 +6,8 @@ function createProntuarioModel() {
      * Cria um novo documento de prontuário.
      */
     async create(prontuarioData) {
+      console.log('Dados recebidos para criar prontuário:', JSON.stringify(prontuarioData, null, 2));
+      
       const novoProntuario = {
         ID_Paciente: prontuarioData.pacienteId,
         ResumoGeralSaude: prontuarioData.resumoGeralSaude,
@@ -13,13 +15,20 @@ function createProntuarioModel() {
         Versao: 1
       };
 
-      const { data, error } = await supabase
-        .from('Prontuarios')
-        .insert([novoProntuario])
-        .select()
-        .single();
+      console.log('Dados a serem inseridos no prontuário:', JSON.stringify(novoProntuario, null, 2));
 
-      if (error) throw error;
+        const { data, error } = await supabase
+          .from('Prontuarios')
+          .insert([novoProntuario])
+          .select()
+          .single();
+
+      if (error) {
+        console.error('Erro detalhado ao inserir prontuário:', error);
+        throw error;
+      }
+      
+      console.log('Prontuário criado com sucesso:', data);
       return data;
     },
 

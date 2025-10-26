@@ -2,6 +2,7 @@ import React from 'react';
 import { MapPin, Phone, Clock, Check } from 'lucide-react';
 import { useLocationMap } from '../../../hooks/useLocationMap';
 import { healthcareService } from '../../../services/healthcareService';
+import pacienteService from '../../../services/pacienteService';
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
@@ -28,17 +29,35 @@ const Locais = () => {
   const [buscandoCep, setBuscandoCep] = useState(false);
   const [erroCep, setErroCep] = useState('');
   const [locationFromCep, setLocationFromCep] = useState(null);
+  const [pacienteCep, setPacienteCep] = useState('');
 
+  // Função para buscar CEP do paciente
+  const buscarCepPaciente = async () => {
+    try {
+      const userId = localStorage.getItem('user_id');
+      if (!userId) return;
+      
+      const pacientes = await pacienteService.getByUserId(userId);
+      if (pacientes && pacientes.length > 0) {
+        const paciente = pacientes[0]; // Pega o primeiro paciente
+        const cepPaciente = paciente.dadosPessoais?.cep || paciente.dados_pessoais?.cep;
+        if (cepPaciente) {
+          setPacienteCep(cepPaciente);
+          // Busca automaticamente locais próximos usando o CEP do paciente
+          await buscarLocaisPorCep(cepPaciente);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao buscar CEP do paciente:', error);
+    }
+  };
 
-  // Função para buscar coordenadas a partir do CEP
-  const buscarPorCep = async (e) => {
-    e.preventDefault();
-    
-    // Remove caracteres não numéricos
-    const cepLimpo = cep.replace(/\D/g, '');
+  // Função para buscar locais por CEP (extraída da função buscarPorCep)
+  const buscarLocaisPorCep = async (cepValue) => {
+    const cepLimpo = cepValue.replace(/\D/g, '');
     
     if (cepLimpo.length !== 8) {
-      setErroCep('Por favor, insira um CEP válido com 8 dígitos');
+      setErroCep('CEP inválido');
       return;
     }
     
@@ -116,6 +135,12 @@ const Locais = () => {
     } finally {
       setBuscandoCep(false);
     }
+  };
+
+  // Função para buscar coordenadas a partir do CEP
+  const buscarPorCep = async (e) => {
+    e.preventDefault();
+    await buscarLocaisPorCep(cep);
   };
 
   // Função extraída para buscar locais próximos
@@ -205,6 +230,11 @@ const Locais = () => {
     };
     fetchLocaisProximos();
   }, [userLocation]);
+
+  // Busca automaticamente o CEP do paciente ao carregar a página
+  useEffect(() => {
+    buscarCepPaciente();
+  }, []);
 
   if (loading) {
     return (
@@ -332,7 +362,19 @@ const Locais = () => {
     <main className="locais-page">
       <div className="page-header">
         <h1 className="locais-title">Locais de Atendimento</h1>
-
+        {pacienteCep && (
+          <div className="cep-info" style={{ 
+            backgroundColor: '#e3f2fd', 
+            padding: '0.75rem', 
+            borderRadius: '8px', 
+            marginBottom: '1rem',
+            border: '1px solid #2196f3',
+            fontSize: '0.9rem',
+            color: '#1565c0'
+          }}>
+            <strong>📍 Buscando locais próximos ao seu CEP:</strong> {pacienteCep}
+          </div>
+        )}
       </div>
 
       {/* Map */}

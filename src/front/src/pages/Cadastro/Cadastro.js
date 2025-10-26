@@ -75,10 +75,15 @@ const Cadastro = () => {
       });
 
       if (!response.ok) {
-        const json = await response.json().catch(() => null);
-        const text = json?.error || json?.message || (await response.text());
-        console.error('[CADASTRO] Erro do backend:', text);
-        alert(`Erro ao cadastrar: ${text}`);
+        let errorMessage = 'Erro desconhecido';
+        try {
+          const json = await response.json();
+          errorMessage = json?.error || json?.message || `Erro ${response.status}`;
+        } catch {
+          errorMessage = `Erro ${response.status}: ${response.statusText}`;
+        }
+        console.error('[CADASTRO] Erro do backend:', errorMessage);
+        alert(`Erro ao cadastrar: ${errorMessage}`);
         setLoading(false);
         return;
       }

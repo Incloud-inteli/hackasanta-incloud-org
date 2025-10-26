@@ -12,8 +12,8 @@ function createPacienteModel() {
       const novoPaciente = {
         usuario_id: pacienteData.usuario_id,
         nome_completo: pacienteData.dadosPessoais?.nomeCompleto || '',
-        data_nascimento: dataNascimento || null,
-        cpf: pacienteData.dadosPessoais?.cpf || '',
+        data_nascimento: dataNascimento || '1900-01-01', // Data padrão se não fornecida
+        cpf: pacienteData.dadosPessoais?.cpf || '000.000.000-00', // CPF padrão se não fornecido
         email: pacienteData.dadosPessoais?.email || '',
         telefone_contato: pacienteData.dadosPessoais?.telefone || '',
         dados_pessoais: pacienteData.dadosPessoais || {},
@@ -23,13 +23,40 @@ function createPacienteModel() {
         parentesco: pacienteData.parentesco || null
       };
 
+      console.log('Dados a serem inseridos:', JSON.stringify(novoPaciente, null, 2));
+      
       const { data, error } = await supabase
-  .from('pacientes')
+        .from('pacientes')
         .insert([novoPaciente])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro detalhado ao inserir paciente:', error);
+        
+        // Se o erro for de usuário já existente, atualiza o paciente existente
+        if (error.code === '23505' && error.message.includes('usuario_id')) {
+          console.log('Usuário já tem paciente cadastrado, atualizando...');
+          const { data: updatedData, error: updateError } = await supabase
+            .from('pacientes')
+            .update(novoPaciente)
+            .eq('usuario_id', novoPaciente.usuario_id)
+            .select()
+            .single();
+            
+          if (updateError) {
+            console.error('Erro ao atualizar paciente existente:', updateError);
+            throw updateError;
+          }
+          
+          console.log('Paciente atualizado com sucesso:', updatedData);
+          return { ...updatedData, _wasUpdated: true };
+        }
+        
+        throw error;
+      }
+      
+      console.log('Paciente criado com sucesso:', data);
       return data;
     },
 
@@ -112,6 +139,7 @@ function createPacienteModel() {
           cpf: dadosPessoais.cpf || '',
           email: dadosPessoais.email || '',
           telefone_contato: dadosPessoais.telefone || '',
+          cep: dadosPessoais.cep || '',
           dados_pessoais: dadosPessoais,
           historico_medico: historicoMedico,
           historico_familiar: historicoFamiliar,
