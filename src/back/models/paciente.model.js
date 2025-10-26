@@ -1,19 +1,33 @@
-const { supabase } = require('../services/supabaseClient');
-
-function createPacienteModel() {
+function createPacienteModel(supabase) {
   return {
     async create(pacienteData) {
+      if (!pacienteData) {
+        throw new Error('Dados do paciente não fornecidos');
+      }
+
       // Debug: logar valor recebido
       console.log('Recebido para criar paciente:', JSON.stringify(pacienteData, null, 2));
+      
+      if (!pacienteData.usuario_id) {
+        throw new Error('usuario_id é obrigatório');
+      }
+
       let dataNascimento = pacienteData.dadosPessoais?.dataNascimento;
       if (typeof dataNascimento === 'string' && dataNascimento.trim() === '') {
         dataNascimento = null;
       }
+      // Gerar CPF único se não fornecido
+      let cpf = pacienteData.dadosPessoais?.cpf;
+      if (!cpf || cpf.trim() === '') {
+        // Gerar um timestamp como identificador único se CPF não fornecido
+        cpf = `TEMP-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      }
+
       const novoPaciente = {
         usuario_id: pacienteData.usuario_id,
         nome_completo: pacienteData.dadosPessoais?.nomeCompleto || '',
         data_nascimento: dataNascimento || '1900-01-01', // Data padrão se não fornecida
-        cpf: pacienteData.dadosPessoais?.cpf || '000.000.000-00', // CPF padrão se não fornecido
+        cpf: cpf,
         email: pacienteData.dadosPessoais?.email || '',
         telefone_contato: pacienteData.dadosPessoais?.telefone || '',
         dados_pessoais: pacienteData.dadosPessoais || {},
@@ -35,24 +49,30 @@ function createPacienteModel() {
         console.error('Erro detalhado ao inserir paciente:', error);
         
         // Se o erro for de usuário já existente, atualiza o paciente existente
-        if (error.code === '23505' && error.message.includes('usuario_id')) {
-          console.log('Usuário já tem paciente cadastrado, atualizando...');
-          const { data: updatedData, error: updateError } = await supabase
-            .from('pacientes')
-            .update(novoPaciente)
-            .eq('usuario_id', novoPaciente.usuario_id)
-            .select()
-            .single();
-            
-          if (updateError) {
-            console.error('Erro ao atualizar paciente existente:', updateError);
-            throw updateError;
+        if (error.code === '23505') {
+          // Se o erro for de CPF duplicado
+          if (error.message.includes('pacientes_cpf_key')) {
+            throw new Error('Este CPF já está cadastrado no sistema.');
           }
-          
-          console.log('Paciente atualizado com sucesso:', updatedData);
-          return { ...updatedData, _wasUpdated: true };
+          // Se o erro for de usuário já existente, atualiza o paciente existente
+          if (error.message.includes('usuario_id')) {
+            console.log('Usuário já tem paciente cadastrado, atualizando...');
+            const { data: updatedData, error: updateError } = await supabase
+              .from('pacientes')
+              .update(novoPaciente)
+              .eq('usuario_id', novoPaciente.usuario_id)
+              .select()
+              .single();
+              
+            if (updateError) {
+              console.error('Erro ao atualizar paciente existente:', updateError);
+              throw updateError;
+            }
+            
+            console.log('Paciente atualizado com sucesso:', updatedData);
+            return { ...updatedData, _wasUpdated: true };
+          }
         }
-        
         throw error;
       }
       
@@ -146,7 +166,7 @@ function createPacienteModel() {
           form_type: formType,
           parentesco: parentesco
         })
-        .eq('id', id)
+        .eq('ID_Paciente', id)
         .select();
 
       if (error) throw error;

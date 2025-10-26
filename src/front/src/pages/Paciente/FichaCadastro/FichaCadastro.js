@@ -107,9 +107,18 @@ const FichaCadastro = () => {
             // Garante que o userId está presente
             let usuario_id = formData.usuario_id;
             if (!usuario_id) {
-                usuario_id = localStorage.getItem('userId');
+                const session = await supabase.auth.getSession();
+                usuario_id = session?.data?.session?.user?.id;
+                if (!usuario_id) {
+                    usuario_id = localStorage.getItem('userId');
+                }
             }
-            if (!usuario_id) throw new Error("ID de autenticação não encontrado!");
+            if (!usuario_id) {
+                alert('Erro: ID de autenticação não encontrado. Por favor, faça login novamente.');
+                navigate('/login');
+                return;
+            }
+            console.log('Salvando com usuario_id:', usuario_id);
 
             // Validação: dataNascimento obrigatória
             const dataNascimento = formData.dadosPessoais?.dataNascimento;
