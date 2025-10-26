@@ -132,7 +132,7 @@ Assistente:`;
           }],
           generationConfig: {
             temperature: 0.7,
-            maxOutputTokens: 2048,
+            maxOutputTokens: 1000,
             topK: 40,
             topP: 0.95,
           },
