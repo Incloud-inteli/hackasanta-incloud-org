@@ -6,30 +6,10 @@ const { authenticate } = require('../middleware/authMiddleware.js');
 function createAuthRoutes(db) { // Envelopado na função fábrica
   const router = express.Router();
 
-  // Função para validar CPF
+  // Função para validar CPF (apenas 11 dígitos para testes)
   function validarCPF(cpf) {
     cpf = cpf.replace(/\D/g, '');
-    
-    if (cpf.length !== 11) return false;
-    if (/^(\d)\1{10}$/.test(cpf)) return false; // CPF com todos os dígitos iguais
-    
-    let soma = 0;
-    for (let i = 0; i < 9; i++) {
-      soma += parseInt(cpf.charAt(i)) * (10 - i);
-    }
-    let resto = 11 - (soma % 11);
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(9))) return false;
-    
-    soma = 0;
-    for (let i = 0; i < 10; i++) {
-      soma += parseInt(cpf.charAt(i)) * (11 - i);
-    }
-    resto = 11 - (soma % 11);
-    if (resto === 10 || resto === 11) resto = 0;
-    if (resto !== parseInt(cpf.charAt(10))) return false;
-    
-    return true;
+    return /^\d{11}$/.test(cpf);
   }
 
   // 🧾 Registro de usuário (feito no backend com Service Role Key)
@@ -42,10 +22,10 @@ function createAuthRoutes(db) { // Envelopado na função fábrica
     const { email, password, nomeCompleto, cpf, telefone } = req.body;
     if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios.' });
 
-    // Validação de CPF
+    // Validação de CPF (apenas 11 dígitos para testes)
     const cpfLimpo = cpf.replace(/\D/g, '');
     if (!validarCPF(cpfLimpo)) {
-      return res.status(400).json({ error: 'CPF inválido.' });
+      return res.status(400).json({ error: 'CPF deve conter 11 dígitos numéricos.' });
     }
 
     try {
