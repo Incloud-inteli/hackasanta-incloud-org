@@ -35,7 +35,13 @@ console.log('✅ Cliente Supabase inicializado.');
 
 // --- Middlewares ---
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin: (origin, callback) => {
+    if (!origin || origin.endsWith('.vercel.app') || origin === 'http://localhost:3000' || origin === 'http://127.0.0.1:3000') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
