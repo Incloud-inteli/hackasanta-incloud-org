@@ -11,33 +11,8 @@ function createPacienteRoutes() {
     try {
       const body = req.body;
 
-      // Dados do paciente no novo formato do Supabase
-      const pacienteData = {
-        ID_UsuarioSistema: body.userId,
-        NomeCompleto: body.dadosPessoais?.nomeCompleto || 'A preencher',
-        DataNascimento: body.dadosPessoais?.dataNascimento,
-        CPF: body.dadosPessoais?.cpf,
-        Email: body.dadosPessoais?.email,
-        CEP: body.dadosPessoais?.cep,
-        TelefoneContato: body.dadosPessoais?.telefone,
-        Genero: body.dadosPessoais?.genero,
-        EnderecoCompleto: body.dadosPessoais?.endereco,
-        EstadoCivil: body.dadosPessoais?.estadoCivil,
-        Raca: body.dadosPessoais?.raca,
-        Profissao: body.dadosPessoais?.profissao,
-        TipoSanguineo: body.historicoMedico?.tipoSanguineo,
-        CirurgiasPrevias: body.historicoMedico?.cirurgiasPrevias,
-        Alergias: body.historicoMedico?.alergias,
-        InternacoesPrevias: body.historicoMedico?.internacoesPrevias,
-        DoencasCronicas: body.historicoMedico?.doencasCronicas,
-        ProblemasNascimento: body.historicoMedico?.problemasNascimento,
-        MedicamentosEmUso: body.historicoMedico?.medicamentosEmUso,
-        TratamentosAtuais: body.historicoMedico?.tratamentosAtuais,
-        HistoricoFamiliarCancer: body.historicoFamiliar?.historicoFamiliarCancer,
-        HistoricoFamiliarTipoCancer: body.historicoFamiliar?.historicoFamiliarTipoCancer
-      };
-
-      const paciente = await pacienteModel.create(pacienteData);
+      // Repassa o objeto inteiro para o model, que já espera o formato aninhado
+      const paciente = await pacienteModel.create(body);
 
       // Criar contatos de emergência
       if (body.contatosEmergencia && body.contatosEmergencia.length > 0) {
@@ -145,30 +120,16 @@ function createPacienteRoutes() {
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
+      if (!id || id === 'undefined' || id === undefined) {
+        return res.status(400).json({ error: 'ID do paciente não informado ou inválido.' });
+      }
       const body = req.body;
 
       // Atualizar dados do paciente
       const paciente = await pacienteModel.updateById(id, {
-        nomeCompleto: body.dadosPessoais?.nomeCompleto,
-        dataNascimento: body.dadosPessoais?.dataNascimento,
-        email: body.dadosPessoais?.email,
-        cep: body.dadosPessoais?.cep,
-        telefone: body.dadosPessoais?.telefone,
-        genero: body.dadosPessoais?.genero,
-        endereco: body.dadosPessoais?.endereco,
-        estadoCivil: body.dadosPessoais?.estadoCivil,
-        raca: body.dadosPessoais?.raca,
-        profissao: body.dadosPessoais?.profissao,
-        tipoSanguineo: body.historicoMedico?.tipoSanguineo,
-        cirurgiasPrevias: body.historicoMedico?.cirurgiasPrevias,
-        alergias: body.historicoMedico?.alergias,
-        internacoesPrevias: body.historicoMedico?.internacoesPrevias,
-        doencasCronicas: body.historicoMedico?.doencasCronicas,
-        problemasNascimento: body.historicoMedico?.problemasNascimento,
-        medicamentosEmUso: body.historicoMedico?.medicamentosEmUso,
-        tratamentosAtuais: body.historicoMedico?.tratamentosAtuais,
-        historicoFamiliarCancer: body.historicoFamiliar?.historicoFamiliarCancer,
-        historicoFamiliarTipoCancer: body.historicoFamiliar?.historicoFamiliarTipoCancer
+        dadosPessoais: body.dadosPessoais || {},
+        historicoMedico: body.historicoMedico || {},
+        historicoFamiliar: body.historicoFamiliar || {},
       });
 
       // Atualizar contatos de emergência

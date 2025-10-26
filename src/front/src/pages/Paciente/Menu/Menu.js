@@ -65,20 +65,42 @@ const Menu = () => {
     let campos = 0;
     let preenchidos = 0;
 
-    // Dados básicos (5 campos)
-    campos += 5;
-    if (paciente.nomeCompleto) preenchidos++;
-    if (paciente.dataNascimento) preenchidos++;
-    if (paciente.cpf) preenchidos++;
-    if (paciente.telefone) preenchidos++;
-    if (paciente.email) preenchidos++;
+    // Dados pessoais
+    const dados = paciente.dadosPessoais || paciente.dados_pessoais || {};
+    const camposPessoais = [
+      'nomeCompleto', 'dataNascimento', 'cpf', 'telefone', 'email', 'genero', 'endereco', 'estadoCivil', 'raca', 'profissao', 'tipoSanguineo'
+    ];
+    campos += camposPessoais.length;
+    camposPessoais.forEach(campo => {
+      if (dados[campo]) preenchidos++;
+    });
 
-    // Prontuário (2 campos principais)
-    campos += 2;
-    if (paciente.prontuario?.resumoGeralSaude &&
-        paciente.prontuario.resumoGeralSaude !== 'A preencher') preenchidos++;
-    if (paciente.responsaveis && paciente.responsaveis.length > 0) preenchidos++;
+    // Histórico médico
+    const historico = paciente.historicoMedico || paciente.historico_medico || {};
+    const camposHistorico = [
+      'historicoSaude', 'cirurgias', 'alergias', 'internacoes', 'doencasCronicas', 'problemasNascimento', 'medicamentos', 'tratamentos'
+    ];
+    campos += camposHistorico.length;
+    camposHistorico.forEach(campo => {
+      if (historico[campo]) preenchidos++;
+    });
 
+    // Histórico familiar
+    const historicoFamiliar = paciente.historicoFamiliar || paciente.historico_familiar || {};
+    const camposFamiliar = ['possuiCancer', 'tipoCancer'];
+    campos += camposFamiliar.length;
+    camposFamiliar.forEach(campo => {
+      if (historicoFamiliar[campo]) preenchidos++;
+    });
+
+    // Contatos de emergência
+    if (Array.isArray(paciente.contatosEmergencia) && paciente.contatosEmergencia.length > 0) {
+      campos += 2; // nome e telefone do contato principal
+      if (paciente.contatosEmergencia[0].nome) preenchidos++;
+      if (paciente.contatosEmergencia[0].telefone) preenchidos++;
+    }
+
+    // Considera cadastro completo se mais de 80% preenchido
     return Math.round((preenchidos / campos) * 100);
   };
 
@@ -110,17 +132,6 @@ const Menu = () => {
         Bem-vindo{paciente && paciente.nomeCompleto ? `, ${paciente.nomeCompleto.split(' ')[0]}` : ''}!
       </h1>
 
-      {/* Progress Bar */}
-      <div className="progress-section">
-        <div className="progress-info">
-          <span className="progress-label">Progresso do cadastro</span>
-          <span className="progress-value">{progressoCadastro}%</span>
-        </div>
-        <div className="progress-bar-container">
-          <div className="progress-bar-fill" style={{ width: `${progressoCadastro}%` }} />
-        </div>
-      </div>
-
       {/* Cards Grid */}
       <div className="cards-grid">
         {/* Meu prontuário Card */}
@@ -132,16 +143,20 @@ const Menu = () => {
             <p className="card-text">Mantenha seu histórico médico atualizado</p>
             <p className="card-text">
               <span className="text-bold">Últimas atualizações:</span>{' '}
-              {paciente?.prontuario?.dataUltimaAtualizacao
-                ? formatarData(paciente.prontuario.dataUltimaAtualizacao)
+              {/* Mostra a data de atualização se houver, senão 'Nunca atualizado' */}
+              {paciente?.updatedAt || paciente?.atualizado_em
+                ? formatarData(paciente.updatedAt || paciente.atualizado_em)
                 : 'Nunca atualizado'}
             </p>
-            <Button
-              className="btn-primary"
-              onClick={() => navigate('/ficha-cadastro')}
-            >
-              Preencher Ficha
-            </Button>
+            {/* Só mostra o botão se o paciente NÃO existir (ou seja, cadastro incompleto) */}
+            {!(paciente && (paciente._id || paciente.id)) && (
+              <Button
+                className="btn-primary"
+                onClick={() => navigate('/ficha-cadastro')}
+              >
+                Preencher Ficha
+              </Button>
+            )}
           </CardContent>
         </Card>
 
