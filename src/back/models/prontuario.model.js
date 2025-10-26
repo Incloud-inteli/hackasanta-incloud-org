@@ -18,7 +18,7 @@ function createProntuarioModel() {
       console.log('Dados a serem inseridos no prontuário:', JSON.stringify(novoProntuario, null, 2));
 
         const { data, error } = await supabase
-          .from('Prontuarios')
+          .from('prontuarios')
           .insert([novoProntuario])
           .select()
           .single();
@@ -37,7 +37,7 @@ function createProntuarioModel() {
      */
     async getByPacienteId(pacienteId) {
       const { data, error } = await supabase
-        .from('Prontuarios')
+        .from('prontuarios')
         .select('*')
         .eq('ID_Paciente', pacienteId)
         .single();
@@ -51,7 +51,7 @@ function createProntuarioModel() {
      */
     async update(id, updateData) {
       const { data, error } = await supabase
-        .from('Prontuarios')
+        .from('prontuarios')
         .update({
           ResumoGeralSaude: updateData.resumoGeralSaude,
           DataUltimaAtualizacao: new Date().toISOString(),

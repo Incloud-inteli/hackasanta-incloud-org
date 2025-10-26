@@ -2,14 +2,11 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  baseURL: 'http://localhost:3001/api',
   headers: {
     'Content-Type': 'application/json'
   },
-  // Add timeout to avoid hanging requests
-  timeout: 10000,
-  // Add withCredentials for CORS
-  withCredentials: true
+  timeout: 10000
 });
 
 // Add request interceptor for debugging

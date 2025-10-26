@@ -1,7 +1,3 @@
-// Remove uma sessão de chat
-export async function deleteChatSession(session_id) {
-  await api.delete(`/chat/session/${session_id}`);
-}
 import api from './api';
 
 // Cria nova sessão de chat
@@ -26,4 +22,9 @@ export async function getChatHistory(session_id) {
 export async function updateChatHistory(session_id, historico) {
   const { data } = await api.put(`/chat/session/${session_id}`, { historico });
   return data;
+}
+
+// Remove uma sessão de chat
+export async function deleteChatSession(session_id) {
+  await api.delete(`/chat/session/${session_id}`);
 }
