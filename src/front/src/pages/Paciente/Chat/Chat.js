@@ -11,6 +11,7 @@ import {
 } from '../../../services/chatHistory';
 import { supabase } from '../../../services/supabaseClient';
 import userService from '../../../services/userService';
+import pacienteService from '../../../services/pacienteService';
 import './Chat.css';
 
 
@@ -55,6 +56,8 @@ const Chat = () => {
         if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
           setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
         }
+      } catch (error) {
+        console.error('Erro ao buscar paciente:', error);
       }
     }
     fetchPacienteId();
