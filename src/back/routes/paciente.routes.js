@@ -2,14 +2,20 @@ const express = require('express');
 const createPacienteModel = require('../models/paciente.model.js');
 const { supabase } = require('../services/supabaseClient');
 
-function createPacienteRoutes() {
+function createPacienteRoutes(supabase) {
   const router = express.Router();
-  const pacienteModel = createPacienteModel();
+  const pacienteModel = createPacienteModel(supabase);
 
   // Criar novo paciente
   router.post('/', async (req, res) => {
     try {
       const body = req.body;
+      console.log('Dados recebidos no POST /pacientes:', JSON.stringify(body, null, 2));
+
+      if (!body.usuario_id) {
+        console.error('Erro: usuario_id não fornecido');
+        return res.status(400).json({ error: 'usuario_id é obrigatório' });
+      }
 
       // Repassa o objeto inteiro para o model, que já espera o formato aninhado
       const paciente = await pacienteModel.create(body);
@@ -37,7 +43,21 @@ function createPacienteRoutes() {
       });
     } catch (err) {
       console.error("Erro ao criar paciente:", err);
-      res.status(500).json({ error: 'Erro ao criar paciente' });
+      console.error("Stack trace:", err.stack);
+      
+      // Check for specific error types
+      if (err.code === '23505' && err.message.includes('pacientes_cpf_key')) {
+        return res.status(400).json({ 
+          error: 'CPF já cadastrado',
+          message: 'Este CPF já está cadastrado no sistema.'
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Erro ao criar paciente',
+        details: err.message,
+        code: err.code
+      });
     }
   });
 

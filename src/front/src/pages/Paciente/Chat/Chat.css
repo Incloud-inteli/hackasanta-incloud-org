@@ -1,3 +1,68 @@
+/* Sessões de Chat (Conversas Anteriores) */
+.chat-sessions-list {
+  margin-bottom: 24px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  padding: 18px 20px 10px 20px;
+}
+.chat-sessions-list strong {
+  display: block;
+  margin-bottom: 10px;
+  color: #5b6fd8;
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+.chat-sessions-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chat-sessions-list li {
+  margin: 0;
+}
+.chat-sessions-list button {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 7px 16px;
+  font-size: 0.98rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  outline: none;
+}
+.chat-sessions-list button.active,
+.chat-sessions-list button:focus {
+  background: #5b6fd8;
+  color: #fff;
+  border-color: #5b6fd8;
+  box-shadow: 0 2px 8px rgba(91,111,216,0.10);
+}
+.chat-sessions-list button:hover:not(.active) {
+  background: #e0e7ff;
+  color: #3730a3;
+  border-color: #c7d2fe;
+}
+
+@media (max-width: 768px) {
+  .chat-sessions-list {
+    padding: 12px 8px 6px 8px;
+  }
+  .chat-sessions-list ul {
+    gap: 6px;
+  }
+  .chat-sessions-list button {
+    padding: 6px 10px;
+    font-size: 0.93rem;
+  }
+}
 .chat-page {
   padding: 40px;
   min-height: 100vh;

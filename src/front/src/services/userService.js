@@ -1,4 +1,4 @@
-// front/src/services/userService.js
+
 import api from './api';
 
 const userService = {
@@ -11,6 +11,12 @@ const userService = {
   // Buscar usuário por ID (incluindo pacientes vinculados)
   getById: async (id) => {
     const response = await api.get(`/usuarios/${id}?include=pacientes`);
+    return response.data;
+  },
+
+  // Buscar usuário por Auth ID (Supabase)
+  getByAuthId: async (authId) => {
+    const response = await api.get(`/users/by-auth/${authId}`);
     return response.data;
   },
 

@@ -32,26 +32,71 @@ const Menu = () => {
         return;
       }
 
-      // Buscar dados completos do usuário no backend
-      const usuario = await userService.getById(user.id); // user.id do Supabase
+      // Buscar dados completos do usuário no backend usando Auth ID
+      const usuario = await userService.getByAuthId(user.id);
       if (!usuario) {
         console.error('Usuário não encontrado no backend');
         return;
       }
-      setPaciente(usuario);
 
-  // Buscar atendimentos do paciente
-  let atendimentos = await atendimentoService.getByPacienteId(usuario._id);
-  if (!Array.isArray(atendimentos)) atendimentos = [];
-  const agendados = atendimentos.filter(a => a.status === 'Agendado');
-  if (agendados.length > 0) setProximoAtendimento(agendados[0]);
+      // Extrair paciente e seu ID de forma mais robusta
+      let paciente = null;
+      let pacienteId = null;
 
-      // Buscar alertas do paciente
-      const alertas = await alertaService.getByPacienteId(usuario._id);
-      if (alertas.length > 0) setUltimaAvaliacao(alertas[0]);
+      // Opção 1: Array de pacientes vinculados
+      if (Array.isArray(usuario.pacientes) && usuario.pacientes.length > 0) {
+        paciente = usuario.pacientes[0];
+        pacienteId = paciente.ID_Paciente || paciente.id || paciente._id;
+      } 
+      // Opção 2: Usuário tem ID_Paciente direto (é ele mesmo o paciente)
+      else if (usuario.ID_Paciente) {
+        paciente = usuario;
+        pacienteId = usuario.ID_Paciente;
+      }
+      // Opção 3: Tentar outros campos possíveis
+      else if (usuario.id || usuario._id) {
+        paciente = usuario;
+        pacienteId = usuario.id || usuario._id;
+      }
+
+      if (!paciente) {
+        console.error('Nenhum paciente encontrado para o usuário.');
+        return;
+      }
+      setPaciente(paciente);
+
+      // Buscar atendimentos e alertas se temos um ID válido
+      if (pacienteId !== undefined && pacienteId !== null) {
+        // Garante que é numérico (se esperado como número)
+        const numericId = Number(pacienteId);
+        
+        if (!isNaN(numericId)) {
+          try {
+            // Buscar atendimentos
+            let atendimentos = await atendimentoService.getByPacienteId(numericId);
+            if (!Array.isArray(atendimentos)) atendimentos = [];
+            const agendados = atendimentos.filter(a => a.status === 'Agendado');
+            if (agendados.length > 0) setProximoAtendimento(agendados[0]);
+
+            // Buscar alertas
+            const alertas = await alertaService.getByPacienteId(numericId);
+            if (Array.isArray(alertas) && alertas.length > 0) {
+              setUltimaAvaliacao(alertas[0]);
+            }
+          } catch (error) {
+            console.error('Erro ao buscar atendimentos/alertas:', error);
+          }
+        } else {
+          console.warn('Menu: pacienteId não é numérico:', pacienteId);
+        }
+      } else {
+        console.warn('Menu: pacienteId não encontrado no objeto usuario/paciente');
+        console.log('Objeto usuario:', usuario);
+        console.log('Objeto paciente:', paciente);
+      }
 
       // Calcular progresso do cadastro
-      const progresso = calcularProgressoCadastro(usuario);
+      const progresso = calcularProgressoCadastro(paciente);
       setProgressoCadastro(progresso);
 
     } catch (error) {

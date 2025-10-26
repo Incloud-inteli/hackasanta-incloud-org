@@ -6,7 +6,8 @@ import {
   createChatSession,
   listChatSessions,
   getChatHistory,
-  updateChatHistory
+  updateChatHistory,
+  deleteChatSession
 } from '../../../services/chatHistory';
 import { supabase } from '../../../services/supabaseClient';
 import userService from '../../../services/userService';
@@ -15,6 +16,26 @@ import './Chat.css';
 
 
 const Chat = () => {
+  // Função para iniciar nova conversa (agora dentro do componente)
+  const handleNovaConversa = async () => {
+    if (!pacienteId) {
+      setError('Paciente não identificado.');
+      return;
+    }
+    try {
+      const defaultMessage = {
+        id: 1,
+        text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
+        sender: 'ai',
+      };
+      const session = await createChatSession(pacienteId, [defaultMessage]);
+      setSessions(prev => [session, ...prev]);
+      setSelectedSession(session.id);
+      setMessages([defaultMessage]);
+    } catch (err) {
+      setError('Erro ao iniciar nova conversa.');
+    }
+  };
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
   const [sessions, setSessions] = useState([]);
@@ -29,21 +50,11 @@ const Chat = () => {
   // Buscar paciente_id do usuário logado
   useEffect(() => {
     async function fetchPacienteId() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          console.log('Usuário autenticado:', user.id);
-          // Buscar pacientes do usuário usando o pacienteService
-          const pacientes = await pacienteService.getByUserId(user.id);
-          console.log('Pacientes encontrados:', pacientes);
-          if (pacientes && pacientes.length > 0) {
-            setPacienteId(pacientes[0].ID_Paciente || pacientes[0].id);
-            console.log('Paciente ID definido:', pacientes[0].ID_Paciente || pacientes[0].id);
-          } else {
-            console.log('Nenhum paciente encontrado para o usuário');
-          }
-        } else {
-          console.log('Usuário não autenticado');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const usuario = await userService.getByAuthId(user.id);
+        if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
+          setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
         }
       } catch (error) {
         console.error('Erro ao buscar paciente:', error);
@@ -211,13 +222,18 @@ const Chat = () => {
   const confirmClearHistory = async () => {
     if (!selectedSession) return;
     try {
-      const defaultMessage = {
-        id: 1,
-        text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
-        sender: 'ai',
-      };
-      await updateChatHistory(selectedSession, [defaultMessage]);
-      setMessages([defaultMessage]);
+      // Remove do banco de dados
+      await deleteChatSession(selectedSession);
+      // Remove da lista local
+      setSessions(prev => prev.filter(s => s.id !== selectedSession));
+      setSelectedSession(null);
+      setMessages([
+        {
+          id: 1,
+          text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
+          sender: 'ai',
+        },
+      ]);
     } catch (err) {
       setError('Erro ao limpar histórico.');
     }
@@ -240,38 +256,43 @@ const Chat = () => {
         </button>
       </div>
 
-      {/* Lista de sessões */}
+      {/* Lista de sessões e botão Nova Conversa */}
       <div className="chat-sessions-list">
-        <strong>💬 Conversas anteriores</strong>
-        {sessions.length > 0 ? (
-          <ul>
-            {sessions.map((session) => (
-              <li key={session.id}>
-                <button
-                  className={session.id === selectedSession ? 'active' : ''}
-                  onClick={() => setSelectedSession(session.id)}
-                >
-                  <span>
-                    📝 Sessão {session.id}
-                    <span className="session-date">
-                      {new Date(session.created_at).toLocaleDateString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <div className="empty-sessions">
-            Nenhuma conversa anterior encontrada
-          </div>
-        )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 10 }}>
+          <strong>Conversas anteriores:</strong>
+          <button
+            className="nova-conversa-btn"
+            onClick={handleNovaConversa}
+            style={{
+              background: '#5b6fd8',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '7px 16px',
+              fontSize: '0.98rem',
+              fontFamily: 'Poppins, sans-serif',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'all 0.18s',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+              outline: 'none',
+            }}
+          >
+            + Nova Conversa
+          </button>
+        </div>
+        <ul>
+          {sessions.map((session) => (
+            <li key={session.id}>
+              <button
+                className={session.id === selectedSession ? 'active' : ''}
+                onClick={() => setSelectedSession(session.id)}
+              >
+                Sessão {session.id} - {new Date(session.created_at).toLocaleString()}
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
 
       {error && (
