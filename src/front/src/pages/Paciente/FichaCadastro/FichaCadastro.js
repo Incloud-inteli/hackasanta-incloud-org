@@ -48,17 +48,39 @@ const FichaCadastro = () => {
                 const paciente = pacientes && pacientes.length > 0 ? pacientes[0] : null;
 
                 if (paciente) {
-                    setPacienteId(paciente._id);
+                    console.log('Dados do paciente recebidos:', paciente);
+                    setPacienteId(paciente.ID_Paciente);
+                    
+                    // Mapeia os dados do banco para a estrutura do formulário
                     setFormData(prev => ({
                         ...initialState,
-                        ...prev,
-                        ...paciente,
-                        usuario_id: user.id, // Garante que o usuario_id está atualizado
+                        usuario_id: user.id,
+                        formType: paciente.form_type || 'euMesmo',
+                        parentesco: paciente.parentesco || '',
                         dadosPessoais: {
                             ...initialState.dadosPessoais,
-                            ...(paciente.dadosPessoais || {}),
-                            dataNascimento: paciente.dadosPessoais?.dataNascimento ? new Date(paciente.dadosPessoais.dataNascimento).toISOString().split('T')[0] : '',
-                        }
+                            nomeCompleto: paciente.nome_completo || '',
+                            dataNascimento: paciente.data_nascimento ? new Date(paciente.data_nascimento).toISOString().split('T')[0] : '',
+                            cpf: paciente.cpf || '',
+                            email: paciente.email || '',
+                            telefone: paciente.telefone_contato || '',
+                            ...((paciente.dados_pessoais || {}) || {}),
+                        },
+                        historicoMedico: {
+                            ...initialState.historicoMedico,
+                            ...(paciente.historico_medico || {}),
+                        },
+                        historicoFamiliar: {
+                            ...initialState.historicoFamiliar,
+                            ...(paciente.historico_familiar || {}),
+                        },
+                        contatosEmergencia: paciente.contatosEmergencia?.length > 0
+                            ? paciente.contatosEmergencia.map(contato => ({
+                                id: contato.ID || Date.now(),
+                                nome: contato.Nome || '',
+                                telefone: contato.Telefone || ''
+                            }))
+                            : initialState.contatosEmergencia
                     }));
                 } else {
                     setFormData({ ...initialState, usuario_id: user.id });

@@ -1,6 +1,9 @@
 const express = require('express');
 const createPacienteModel = require('../models/paciente.model.js');
 const { supabase } = require('../services/supabaseClient');
+const { criarOuAtualizarProntuario } = require('../services/prontuarioService');
+
+
 
 function createPacienteRoutes(supabase) {
   const router = express.Router();
@@ -34,11 +37,20 @@ function createPacienteRoutes(supabase) {
       }
 
 
+      // Criar prontuário usando o service
+      try {
+        await criarOuAtualizarProntuario(paciente.id, body);
+        console.log('Prontuário criado com sucesso para o paciente:', paciente.id);
+      } catch (prontuarioError) {
+        console.error("Erro ao criar prontuário:", prontuarioError);
+        // Não falha a requisição se o prontuário falhar
+      }
+
       // Remove a propriedade _wasUpdated antes de enviar a resposta
       delete paciente._wasUpdated;
       
       res.status(201).json({ 
-        message: "Paciente salvo com sucesso!", 
+        message: "Paciente e prontuário salvos com sucesso!", 
         paciente 
       });
     } catch (err) {
@@ -162,15 +174,12 @@ function createPacienteRoutes(supabase) {
         }
       }
 
-      // Atualizar prontuário
-      if (body.prontuario) {
-        await supabase
-          .from('Prontuarios')
-          .upsert({
-            ID_Paciente: id,
-            ResumoGeralSaude: body.prontuario.resumoGeralSaude,
-            DataUltimaAtualizacao: new Date().toISOString()
-          });
+      // Atualizar prontuário usando o service
+      try {
+        await criarOuAtualizarProntuario(id, body);
+        console.log('Prontuário atualizado com sucesso para o paciente:', id);
+      } catch (prontuarioError) {
+        console.error('Erro ao atualizar prontuário:', prontuarioError);
       }
 
       res.status(200).json({ 
