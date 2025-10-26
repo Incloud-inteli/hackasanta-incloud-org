@@ -14,9 +14,9 @@ const pacienteService = {
     return response.data;
   },
 
-  // 🔍 Buscar paciente(s) por userId (usuário logado)
-  getByUserId: async (userId) => {
-    const response = await api.get(`/pacientes/by-user/${userId}`);
+  // 🔍 Buscar paciente(s) por usuario_id (usuário logado)
+  getByUserId: async (usuario_id) => {
+    const response = await api.get(`/pacientes/by-user/${usuario_id}`);
     return response.data;
   },
 

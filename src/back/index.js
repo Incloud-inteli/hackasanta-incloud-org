@@ -54,6 +54,11 @@ app.use('/api/transcritores', createTranscritorRoutes(supabase));
 app.use('/api/auth', createAuthRoutes(supabase)); // Passa o cliente Supabase para Auth também
 app.use('/api/users', createUserRoutes(supabase));
 
+
+// Adiciona as rotas de chat
+const chatRoutes = require('./routes/chat.routes.js');
+app.use('/api/chat', chatRoutes);
+
 // Adiciona a rota de teste
 const testRoutes = require('./routes/test.js');
 app.use('/api/test', testRoutes);

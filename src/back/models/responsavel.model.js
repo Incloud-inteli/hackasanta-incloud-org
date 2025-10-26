@@ -47,7 +47,7 @@ function createResponsavelModel() {
     // Vincula um responsável a um paciente
     async vincularPaciente(responsavelId, pacienteId, parentesco) {
       const { data, error } = await supabase
-        .from('Paciente_Responsavel')
+        .from('paciente_responsavel')
         .insert([{
           ID_Paciente: pacienteId,
           ID_Responsavel: responsavelId,
@@ -90,7 +90,7 @@ function createResponsavelModel() {
     // Remove vínculo entre responsável e paciente
     async desvincularPaciente(responsavelId, pacienteId) {
       const { error } = await supabase
-        .from('Paciente_Responsavel')
+        .from('paciente_responsavel')
         .delete()
         .match({
           ID_Paciente: pacienteId,
