@@ -219,9 +219,9 @@ function createPacienteRoutes() {
 
       // Primeiro deleta registros relacionados
       await Promise.all([
-        supabase.from('ContatosEmergencia').delete().eq('ID_Paciente', id),
-        supabase.from('Prontuarios').delete().eq('ID_Paciente', id),
-        supabase.from('Paciente_Responsavel').delete().eq('ID_Paciente', id)
+  supabase.from('ContatosEmergencia').delete().eq('ID_Paciente', id),
+  supabase.from('Prontuarios').delete().eq('ID_Paciente', id),
+  supabase.from('paciente_responsavel').delete().eq('ID_Paciente', id)
       ]);
 
       // Por fim, deleta o paciente

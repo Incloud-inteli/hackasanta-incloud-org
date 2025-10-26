@@ -1,79 +1,92 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { sendMessage, isServiceConfigured } from '../../../services/chatService';
+import {
+  createChatSession,
+  listChatSessions,
+  getChatHistory,
+  updateChatHistory
+} from '../../../services/chatHistory';
+import { supabase } from '../../../services/supabaseClient';
+import userService from '../../../services/userService';
 import './Chat.css';
 
-const CHAT_STORAGE_KEY = 'previvai_chat_history';
-const CHAT_TIMESTAMP_KEY = 'previvai_chat_timestamp';
-const EXPIRATION_TIME = 60 * 60 * 1000; 
-
-const loadChatHistory = () => {
-  try {
-    const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-    if (!savedMessages) {
-      return null;
-    }
-    return JSON.parse(savedMessages);
-  } catch (error) {
-    console.error('Erro ao carregar histórico do chat:', error);
-    return null;
-  }
-};
-
-const saveChatHistory = (messages) => {
-  try {
-    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
-  } catch (error) {
-    console.error('Erro ao salvar histórico do chat:', error);
-  }
-};
 
 const Chat = () => {
   const [message, setMessage] = useState('');
-  
-  const initialMessages = loadChatHistory() || [
-    {
-      id: 1,
-      text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
-      sender: 'ai',
-    },
-  ];
-  
-  const [messages, setMessages] = useState(initialMessages);
+  const [messages, setMessages] = useState([]);
+  const [sessions, setSessions] = useState([]);
+  const [selectedSession, setSelectedSession] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [appointments, setAppointments] = useState([]); 
-  const [showClearModal, setShowClearModal] = useState(false); 
+  const [appointments, setAppointments] = useState([]);
+  const [showClearModal, setShowClearModal] = useState(false);
   const messagesEndRef = useRef(null);
+  const [pacienteId, setPacienteId] = useState(null);
+
+  // Buscar paciente_id do usuário logado
+  useEffect(() => {
+    async function fetchPacienteId() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const usuario = await userService.getById(user.id);
+        if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
+          setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
+        }
+      }
+    }
+    fetchPacienteId();
+  }, []);
+
+  // Carrega sessões ao obter pacienteId
+  useEffect(() => {
+    if (!pacienteId) return;
+    async function fetchSessions() {
+      try {
+        const data = await listChatSessions(pacienteId);
+        setSessions(data);
+        if (data.length > 0) {
+          setSelectedSession(data[0].id);
+        }
+      } catch (err) {
+        setError('Erro ao buscar sessões de chat.');
+      }
+    }
+    fetchSessions();
+  }, [pacienteId]);
+
+  // Carrega histórico da sessão selecionada
+  useEffect(() => {
+    async function fetchHistory() {
+      if (!selectedSession) {
+        setMessages([
+          {
+            id: 1,
+            text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
+            sender: 'ai',
+          },
+        ]);
+        return;
+      }
+      try {
+        const historico = await getChatHistory(selectedSession);
+        setMessages(historico);
+      } catch (err) {
+        setError('Erro ao carregar histórico da sessão.');
+      }
+    }
+    fetchHistory();
+  }, [selectedSession]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    saveChatHistory(messages);
-  }, [messages]);
-
-  useEffect(() => {
-    const updateTimestamp = () => {
-      const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
-      if (savedMessages) {
-        localStorage.setItem(CHAT_TIMESTAMP_KEY, Date.now().toString());
-      }
-    };
-
-    window.addEventListener('click', updateTimestamp);
-    window.addEventListener('keypress', updateTimestamp);
-
-    return () => {
-      window.removeEventListener('click', updateTimestamp);
-      window.removeEventListener('keypress', updateTimestamp);
-    };
-  }, []);
 
   useEffect(() => {
     if (!isServiceConfigured()) {
@@ -116,6 +129,7 @@ const Chat = () => {
     return responseText;
   };
 
+
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
 
@@ -131,22 +145,33 @@ const Chat = () => {
     setError(null);
 
     try {
-      const conversationHistory = [...messages, userMessage];
+      if (!pacienteId) throw new Error('Paciente não identificado.');
+      let sessionId = selectedSession;
+      let conversationHistory = [];
+      if (!sessionId) {
+        // Cria nova sessão
+        const session = await createChatSession(pacienteId, [userMessage]);
+        sessionId = session.id;
+        setSelectedSession(sessionId);
+        setSessions(prev => [session, ...prev]);
+        conversationHistory = [userMessage];
+      } else {
+        conversationHistory = [...messages, userMessage];
+        await updateChatHistory(sessionId, conversationHistory);
+      }
+
       const aiResponse = await sendMessage(conversationHistory);
-
       const processedResponse = processAppointment(aiResponse);
-
       const aiMessage = {
         id: Date.now() + 1,
         text: processedResponse,
         sender: 'ai',
       };
-
-      setMessages(prev => [...prev, aiMessage]);
+      const updatedHistory = [...conversationHistory, aiMessage];
+      setMessages(updatedHistory);
+      await updateChatHistory(sessionId, updatedHistory);
     } catch (err) {
-      console.error('Erro ao enviar mensagem:', err);
       setError(err.message || 'Erro ao processar sua mensagem. Tente novamente.');
-      
       const errorMessage = {
         id: Date.now() + 1,
         text: '😔 Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente em alguns instantes.',
@@ -165,20 +190,24 @@ const Chat = () => {
     }
   };
 
+
   const handleClearHistory = () => {
     setShowClearModal(true);
   };
 
-  const confirmClearHistory = () => {
-    const defaultMessage = {
-      id: 1,
-      text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
-      sender: 'ai',
-    };
-    
-    setMessages([defaultMessage]);
-    localStorage.removeItem(CHAT_STORAGE_KEY);
-    localStorage.removeItem(CHAT_TIMESTAMP_KEY);
+  const confirmClearHistory = async () => {
+    if (!selectedSession) return;
+    try {
+      const defaultMessage = {
+        id: 1,
+        text: 'Olá! Sou o PREVIVAI, seu assistente médico virtual especializado em prevenção e detecção precoce de câncer. Como posso ajudá-lo hoje?',
+        sender: 'ai',
+      };
+      await updateChatHistory(selectedSession, [defaultMessage]);
+      setMessages([defaultMessage]);
+    } catch (err) {
+      setError('Erro ao limpar histórico.');
+    }
     setShowClearModal(false);
   };
 
@@ -186,7 +215,8 @@ const Chat = () => {
     setShowClearModal(false);
   };
 
-  const isChatRestored = loadChatHistory() !== null;
+
+
 
   return (
     <main className="chat-page">
@@ -197,7 +227,22 @@ const Chat = () => {
         </button>
       </div>
 
-      {/* Banner de restauração removido, histórico agora é permanente */}
+      {/* Lista de sessões */}
+      <div className="chat-sessions-list">
+        <strong>Conversas anteriores:</strong>
+        <ul>
+          {sessions.map((session) => (
+            <li key={session.id}>
+              <button
+                className={session.id === selectedSession ? 'active' : ''}
+                onClick={() => setSelectedSession(session.id)}
+              >
+                Sessão {session.id} - {new Date(session.created_at).toLocaleString()}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {error && (
         <div className="chat-error-banner">
@@ -221,7 +266,6 @@ const Chat = () => {
                 {msg.sender === 'ai' ? (
                   <ReactMarkdown
                     components={{
-                      // Customizar renderização de elementos
                       p: ({node, ...props}) => <p style={{margin: '0.5em 0'}} {...props} />,
                       ul: ({node, ...props}) => <ul style={{marginLeft: '1.2em', marginTop: '0.5em', marginBottom: '0.5em'}} {...props} />,
                       ol: ({node, ...props}) => <ol style={{marginLeft: '1.2em', marginTop: '0.5em', marginBottom: '0.5em'}} {...props} />,
@@ -241,8 +285,6 @@ const Chat = () => {
               </div>
             </div>
           ))}
-          
-          {/* Indicador de digitação */}
           {isLoading && (
             <div className="message-wrapper message-start">
               <div className="message-bubble message-ai typing-indicator">
@@ -252,11 +294,8 @@ const Chat = () => {
               </div>
             </div>
           )}
-          
           <div ref={messagesEndRef} />
         </div>
-
-        {/* Input Area */}
         <div className="input-area">
           <input
             type="text"
@@ -276,8 +315,6 @@ const Chat = () => {
           </button>
         </div>
       </div>
-
-      {/* Modal de Confirmação */}
       {showClearModal && (
         <div className="modal-overlay" onClick={cancelClearHistory}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>

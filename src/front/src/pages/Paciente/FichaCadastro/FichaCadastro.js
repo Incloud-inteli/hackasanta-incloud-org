@@ -7,7 +7,7 @@ import './FichaCadastro.css';
 
 // Estrutura inicial e completa do nosso formulário, refletindo o banco
 const initialState = {
-    userId: null,
+    usuario_id: null,
     formType: 'euMesmo',
     parentesco: '',
     dadosPessoais: {
@@ -49,12 +49,11 @@ const FichaCadastro = () => {
 
                 if (paciente) {
                     setPacienteId(paciente._id);
-                    // Preenche o formulário garantindo que todas as chaves existam
                     setFormData(prev => ({
                         ...initialState,
                         ...prev,
                         ...paciente,
-                        userId: user.id, // Garante que o userId está atualizado
+                        usuario_id: user.id, // Garante que o usuario_id está atualizado
                         dadosPessoais: {
                             ...initialState.dadosPessoais,
                             ...(paciente.dadosPessoais || {}),
@@ -62,13 +61,12 @@ const FichaCadastro = () => {
                         }
                     }));
                 } else {
-                    // Prepara um formulário em branco para um novo usuário
-                    setFormData({ ...initialState, userId: user.id });
+                    setFormData({ ...initialState, usuario_id: user.id });
                 }
             } catch (error) {
                 if (error.response?.status === 404) {
                     const { data: { user } } = await supabase.auth.getSession();
-                    setFormData({ ...initialState, userId: user?.id }); // Garante o userId mesmo para novos
+                    setFormData({ ...initialState, usuario_id: user?.id }); // Garante o usuario_id mesmo para novos
                 } else {
                     console.error('Erro ao carregar dados do paciente:', error);
                 }
@@ -97,17 +95,15 @@ const FichaCadastro = () => {
     const handleSave = async () => {
         try {
             // Garante que o userId está presente
-            let userId = formData.userId;
-            if (!userId) {
-                // Tenta recuperar do localStorage
-                userId = localStorage.getItem('userId');
+            let usuario_id = formData.usuario_id;
+            if (!usuario_id) {
+                usuario_id = localStorage.getItem('userId');
             }
-            if (!userId) throw new Error("ID de autenticação não encontrado!");
+            if (!usuario_id) throw new Error("ID de autenticação não encontrado!");
 
-            const dadosParaSalvar = { ...formData, userId };
-            // Limpa o objeto de campos temporários do frontend
-            delete dadosParaSalvar._id; 
-            dadosParaSalvar.contatosEmergencia = dadosParaSalvar.contatosEmergencia.map(({id, ...rest}) => rest); // Remove o 'id' temporário
+            const dadosParaSalvar = { ...formData, usuario_id };
+            delete dadosParaSalvar._id;
+            dadosParaSalvar.contatosEmergencia = dadosParaSalvar.contatosEmergencia.map(({id, ...rest}) => rest);
 
             if (pacienteId) {
                 await pacienteService.update(pacienteId, dadosParaSalvar);
