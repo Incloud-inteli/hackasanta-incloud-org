@@ -27,22 +27,12 @@ function createPacienteRoutes() {
         if (contatosError) throw contatosError;
       }
 
-      // Criar prontuário
-      if (body.prontuario) {
-        const { data: prontuario, error: prontuarioError } = await supabase
-          .from('Prontuarios')
-          .insert({
-            ID_Paciente: paciente.ID_Paciente,
-            ResumoGeralSaude: body.prontuario.resumoGeralSaude || 'A preencher',
-            DataUltimaAtualizacao: new Date().toISOString(),
-            Versao: 1
-          });
 
-        if (prontuarioError) throw prontuarioError;
-      }
-
+      // Remove a propriedade _wasUpdated antes de enviar a resposta
+      delete paciente._wasUpdated;
+      
       res.status(201).json({ 
-        message: "Paciente criado com sucesso!", 
+        message: "Paciente salvo com sucesso!", 
         paciente 
       });
     } catch (err) {

@@ -113,7 +113,7 @@ const Menu = () => {
     // Dados pessoais
     const dados = paciente.dadosPessoais || paciente.dados_pessoais || {};
     const camposPessoais = [
-      'nomeCompleto', 'dataNascimento', 'cpf', 'telefone', 'email', 'genero', 'endereco', 'estadoCivil', 'raca', 'profissao', 'tipoSanguineo'
+      'nomeCompleto', 'dataNascimento', 'cpf', 'telefone', 'email', 'genero', 'cep', 'estadoCivil', 'raca', 'profissao', 'tipoSanguineo'
     ];
     campos += camposPessoais.length;
     camposPessoais.forEach(campo => {

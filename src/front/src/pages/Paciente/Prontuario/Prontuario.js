@@ -140,7 +140,7 @@ const Prontuario = () => {
                             <div className="data-row"><span className="data-label">Telefone:</span> {paciente.dadosPessoais?.telefone}</div>
                             <div className="data-row"><span className="data-label">Email:</span> {paciente.dadosPessoais?.email || 'Não informado'}</div>
                             <div className="data-row"><span className="data-label">Gênero:</span> {paciente.dadosPessoais?.genero || 'Não informado'}</div>
-                            <div className="data-row"><span className="data-label">Endereço:</span> {paciente.dadosPessoais?.endereco || 'Não informado'}</div>
+                            <div className="data-row"><span className="data-label">CEP:</span> {paciente.dadosPessoais?.cep || 'Não informado'}</div>
                             <div className="data-row"><span className="data-label">Estado Civil:</span> {paciente.dadosPessoais?.estadoCivil || 'Não informado'}</div>
                             <div className="data-row"><span className="data-label">Raça:</span> {paciente.dadosPessoais?.raca || 'Não informado'}</div>
                             <div className="data-row"><span className="data-label">Profissão:</span> {paciente.dadosPessoais?.profissao || 'Não informado'}</div>
@@ -154,7 +154,15 @@ const Prontuario = () => {
                             <div className="data-row-edit"><label className="data-label">Telefone:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.telefone || ''} onChange={e => handleFieldChange('dadosPessoais', 'telefone', e.target.value)} /></div>
                             <div className="data-row-edit"><label className="data-label">Email:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.email || ''} onChange={e => handleFieldChange('dadosPessoais', 'email', e.target.value)} /></div>
                             <div className="data-row-edit"><label className="data-label">Gênero:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.genero || ''} onChange={e => handleFieldChange('dadosPessoais', 'genero', e.target.value)} /></div>
-                            <div className="data-row-edit"><label className="data-label">Endereço:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.endereco || ''} onChange={e => handleFieldChange('dadosPessoais', 'endereco', e.target.value)} /></div>
+                            <div className="data-row-edit"><label className="data-label">CEP:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.cep || ''} onChange={e => {
+                                const valor = e.target.value.replace(/\D/g, '');
+                                if (valor.length <= 8) {
+                                    const cepFormatado = valor.length > 5 
+                                        ? `${valor.slice(0, 5)}-${valor.slice(5)}`
+                                        : valor;
+                                    handleFieldChange('dadosPessoais', 'cep', cepFormatado);
+                                }
+                            }} placeholder="00000-000" maxLength="9" /></div>
                             <div className="data-row-edit"><label className="data-label">Estado Civil:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.estadoCivil || ''} onChange={e => handleFieldChange('dadosPessoais', 'estadoCivil', e.target.value)} /></div>
                             <div className="data-row-edit"><label className="data-label">Raça:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.raca || ''} onChange={e => handleFieldChange('dadosPessoais', 'raca', e.target.value)} /></div>
                             <div className="data-row-edit"><label className="data-label">Profissão:</label><input type="text" className="data-input" value={paciente.dadosPessoais?.profissao || ''} onChange={e => handleFieldChange('dadosPessoais', 'profissao', e.target.value)} /></div>
