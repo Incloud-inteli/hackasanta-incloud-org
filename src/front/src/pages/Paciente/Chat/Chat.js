@@ -10,7 +10,7 @@ import {
   deleteChatSession
 } from '../../../services/chatHistory';
 import { supabase } from '../../../services/supabaseClient';
-import userService from '../../../services/userService';
+import pacienteService from '../../../services/pacienteService';
 import './Chat.css';
 
 
@@ -49,12 +49,36 @@ const Chat = () => {
   // Buscar paciente_id do usuário logado
   useEffect(() => {
     async function fetchPacienteId() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const usuario = await userService.getByAuthId(user.id);
-        if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
-          setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
+      try {
+        console.log('🔍 Buscando dados do usuário...');
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('👤 Usuário encontrado:', user?.id);
+        
+        if (user) {
+          console.log('🔍 Buscando pacientes para usuário:', user.id);
+          try {
+            const pacientes = await pacienteService.getByUserId(user.id);
+            console.log('📋 Pacientes encontrados:', pacientes);
+          
+            if (pacientes && pacientes.length > 0) {
+              const pacienteId = pacientes[0].id || pacientes[0].ID_Paciente;
+              console.log('✅ Paciente ID definido:', pacienteId);
+              setPacienteId(pacienteId);
+            } else {
+              console.log('⚠️ Nenhum paciente encontrado para este usuário');
+              setError('Nenhum paciente encontrado. Complete seu cadastro primeiro.');
+            }
+          } catch (apiError) {
+            console.error('💥 Erro na API ao buscar pacientes:', apiError);
+            setError(`Erro ao buscar pacientes: ${apiError.message}`);
+          }
+        } else {
+          console.log('❌ Usuário não autenticado');
+          setError('Usuário não autenticado. Faça login novamente.');
         }
+      } catch (error) {
+        console.error('💥 Erro ao buscar paciente:', error);
+        setError(`Erro ao carregar dados do paciente: ${error.message}`);
       }
     }
     fetchPacienteId();

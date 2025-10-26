@@ -7,7 +7,7 @@ async function criarOuAtualizarProntuario(pacienteId, dadosPaciente) {
         
         // Criar ou atualizar prontuário
         const { data, error } = await supabase
-            .from('Prontuarios')
+            .from('prontuarios')
             .upsert({
                 ID_Paciente: pacienteId,
                 ResumoGeralSaude: resumoGeralSaude,

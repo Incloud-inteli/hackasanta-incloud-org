@@ -116,7 +116,7 @@ function createPacienteRoutes(supabase) {
 
         // Buscar prontuário
         const { data: prontuario } = await supabase
-          .from('Prontuarios')
+          .from('prontuarios')
           .select('*')
           .eq('ID_Paciente', id)
           .single();
@@ -142,6 +142,9 @@ function createPacienteRoutes(supabase) {
   router.put('/:id', async (req, res) => {
     try {
       const { id } = req.params;
+      console.log('🔄 Atualizando paciente ID:', id);
+      console.log('📋 Dados recebidos:', JSON.stringify(req.body, null, 2));
+      
       if (!id || id === 'undefined' || id === undefined) {
         return res.status(400).json({ error: 'ID do paciente não informado ou inválido.' });
       }
@@ -149,9 +152,12 @@ function createPacienteRoutes(supabase) {
 
       // Atualizar dados do paciente
       const paciente = await pacienteModel.updateById(id, {
+        usuario_id: body.usuario_id,
         dadosPessoais: body.dadosPessoais || {},
         historicoMedico: body.historicoMedico || {},
         historicoFamiliar: body.historicoFamiliar || {},
+        formType: body.formType,
+        parentesco: body.parentesco,
       });
 
       // Atualizar contatos de emergência
@@ -200,7 +206,7 @@ function createPacienteRoutes(supabase) {
       // Primeiro deleta registros relacionados
       await Promise.all([
   supabase.from('ContatosEmergencia').delete().eq('ID_Paciente', id),
-  supabase.from('Prontuarios').delete().eq('ID_Paciente', id),
+  supabase.from('prontuarios').delete().eq('ID_Paciente', id),
   supabase.from('paciente_responsavel').delete().eq('ID_Paciente', id)
       ]);
 

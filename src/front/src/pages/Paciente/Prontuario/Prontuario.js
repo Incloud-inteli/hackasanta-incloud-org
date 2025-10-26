@@ -204,9 +204,6 @@ const Prontuario = () => {
         <main className="prontuario-page">
             <h1 className="prontuario-title">Prontuário</h1>
 
-            {/* DADOS PESSOAIS */}
-            {/* (Mantém sua renderização atual igual) */}
-
             {/* === RESUMO E ALERTAS === */}
             <div className="prontuario-card alerts-card">
                 <h2 className="card-title">Resumo e Alertas</h2>
@@ -233,6 +230,48 @@ const Prontuario = () => {
                     ) : (
                         <p>Nenhum resumo ou alerta disponível.</p>
                     )}
+                </div>
+            </div>
+
+            {/* DADOS PESSOAIS */}
+            <div className="prontuario-card">
+                <h2 className="card-title">Dados Pessoais</h2>
+                <div className="card-content">
+                    <div className="data-row"><span className="data-label">Nome:</span> {paciente.dadosPessoais?.nomeCompleto || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Data de nascimento:</span> {paciente.dadosPessoais?.dataNascimento ? new Date(paciente.dadosPessoais.dataNascimento).toLocaleDateString('pt-BR') : 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">CPF:</span> {paciente.dadosPessoais?.cpf || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Telefone:</span> {paciente.dadosPessoais?.telefone || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Email:</span> {paciente.dadosPessoais?.email || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Gênero:</span> {paciente.dadosPessoais?.genero || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Endereço:</span> {paciente.dadosPessoais?.endereco || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Estado Civil:</span> {paciente.dadosPessoais?.estadoCivil || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Raça:</span> {paciente.dadosPessoais?.raca || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Profissão:</span> {paciente.dadosPessoais?.profissao || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Tipo Sanguíneo:</span> {paciente.dadosPessoais?.tipoSanguineo || 'Não informado'}</div>
+                </div>
+            </div>
+
+            {/* HISTÓRICO MÉDICO */}
+            <div className="prontuario-card">
+                <h2 className="card-title">Histórico Médico</h2>
+                <div className="card-content">
+                    <div className="data-row"><span className="data-label">Histórico de Saúde:</span> {paciente.historicoMedico?.historicoSaude || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Cirurgias:</span> {paciente.historicoMedico?.cirurgias || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Alergias:</span> {paciente.historicoMedico?.alergias || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Internações:</span> {paciente.historicoMedico?.internacoes || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Doenças Crônicas:</span> {paciente.historicoMedico?.doencasCronicas || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Problemas no Nascimento:</span> {paciente.historicoMedico?.problemasNascimento || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Medicamentos:</span> {paciente.historicoMedico?.medicamentos || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Tratamentos:</span> {paciente.historicoMedico?.tratamentos || 'Não informado'}</div>
+                </div>
+            </div>
+
+            {/* HISTÓRICO FAMILIAR */}
+            <div className="prontuario-card">
+                <h2 className="card-title">Histórico Familiar</h2>
+                <div className="card-content">
+                    <div className="data-row"><span className="data-label">Possui Câncer na Família:</span> {paciente.historicoFamiliar?.possuiCancer || 'Não informado'}</div>
+                    <div className="data-row"><span className="data-label">Tipo de Câncer:</span> {paciente.historicoFamiliar?.tipoCancer || 'Não informado'}</div>
                 </div>
             </div>
         </main>

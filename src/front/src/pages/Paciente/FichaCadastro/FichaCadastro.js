@@ -37,15 +37,23 @@ const FichaCadastro = () => {
     useEffect(() => {
         const carregarFichaDoUsuarioLogado = async () => {
             try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) {
-                    navigate('/login');
-                    return;
-                }
-                const user = session.user;
-                
-                const pacientes = await pacienteService.getByUserId(user.id);
-                const paciente = pacientes && pacientes.length > 0 ? pacientes[0] : null;
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+                navigate('/login');
+                return;
+            }
+            const user = session.user;
+            
+            // Verificar se o user.id é um UUID válido
+            if (!user.id || typeof user.id !== 'string') {
+                console.error('ID do usuário inválido:', user.id);
+                alert('Erro: ID do usuário inválido. Faça login novamente.');
+                navigate('/login');
+                return;
+            }
+            
+            const pacientes = await pacienteService.getByUserId(user.id);
+            const paciente = pacientes && pacientes.length > 0 ? pacientes[0] : null;
 
                 if (paciente) {
                     console.log('Dados do paciente recebidos:', paciente);
@@ -126,21 +134,34 @@ const FichaCadastro = () => {
     
     const handleSave = async () => {
         try {
-            // Garante que o userId está presente
+            // Garante que o userId está presente e é um UUID válido
             let usuario_id = formData.usuario_id;
+            console.log('🔍 Usuario_id do form:', usuario_id);
+            
             if (!usuario_id) {
-                const session = await supabase.auth.getSession();
-                usuario_id = session?.data?.session?.user?.id;
-                if (!usuario_id) {
-                    usuario_id = localStorage.getItem('userId');
-                }
+                console.log('🔍 Buscando sessão do Supabase...');
+                const { data: { session } } = await supabase.auth.getSession();
+                console.log('🔍 Sessão encontrada:', session?.user?.id);
+                usuario_id = session?.user?.id;
             }
+            
+            // Validar se é um UUID válido (mais flexível)
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
             if (!usuario_id) {
-                alert('Erro: ID de autenticação não encontrado. Por favor, faça login novamente.');
+                console.error('ID do usuário não encontrado');
+                alert('Erro: Usuário não autenticado. Por favor, faça login novamente.');
                 navigate('/login');
                 return;
             }
-            console.log('Salvando com usuario_id:', usuario_id);
+            
+            if (!uuidRegex.test(usuario_id)) {
+                console.error('ID do usuário não é um UUID válido:', usuario_id);
+                alert('Erro: ID de usuário inválido. Por favor, faça login novamente.');
+                navigate('/login');
+                return;
+            }
+            
+            console.log('Salvando com usuario_id válido:', usuario_id);
 
             // Validação: dataNascimento obrigatória
             const dataNascimento = formData.dadosPessoais?.dataNascimento;
@@ -150,18 +171,35 @@ const FichaCadastro = () => {
             }
 
 
-            // Monta objeto aninhado conforme esperado pelo backend
+            // Monta objeto exatamente como está no banco
             const dadosParaSalvar = {
                 usuario_id,
-                dadosPessoais: formData.dadosPessoais || {},
-                historicoMedico: formData.historicoMedico || {},
+                dadosPessoais: {
+                    cpf: formData.dadosPessoais?.cpf || '',
+                    raca: formData.dadosPessoais?.raca || '',
+                    email: formData.dadosPessoais?.email || '',
+                    genero: formData.dadosPessoais?.genero || '',
+                    endereco: formData.dadosPessoais?.endereco || '',
+                    telefone: formData.dadosPessoais?.telefone || '',
+                    profissao: formData.dadosPessoais?.profissao || '',
+                    estadoCivil: formData.dadosPessoais?.estadoCivil || '',
+                    nomeCompleto: formData.dadosPessoais?.nomeCompleto || '',
+                    tipoSanguineo: formData.dadosPessoais?.tipoSanguineo || '',
+                    dataNascimento: formData.dadosPessoais?.dataNascimento || ''
+                },
+                historicoMedico: {
+                    alergias: formData.historicoMedico?.alergias || 'nenhum',
+                    cirurgias: formData.historicoMedico?.cirurgias || 'nenhum',
+                    internacoes: formData.historicoMedico?.internacoes || 'nenhum',
+                    tratamentos: formData.historicoMedico?.tratamentos || 'nenhum',
+                    medicamentos: formData.historicoMedico?.medicamentos || 'nenhum',
+                    historicoSaude: formData.historicoMedico?.historicoSaude || 'nenhum',
+                    doencasCronicas: formData.historicoMedico?.doencasCronicas || 'nenhum',
+                    problemasNascimento: formData.historicoMedico?.problemasNascimento || 'nenhum'
+                },
                 historicoFamiliar: formData.historicoFamiliar || {},
-                dadosContato: formData.dadosContato || {},
-                dadosEndereco: formData.dadosEndereco || {},
-                contatosEmergencia: (formData.contatosEmergencia || []).map(({id, ...rest}) => rest),
-                formType: formData.formType,
-                parentesco: formData.parentesco,
-                // Adicione outros campos aninhados conforme necessário
+                formType: formData.formType || 'euMesmo',
+                parentesco: formData.parentesco || null
             };
 
             if (pacienteId) {
