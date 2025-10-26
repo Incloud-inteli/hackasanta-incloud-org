@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { sendMessage, isServiceConfigured } from '../../../services/chatService';
@@ -47,14 +46,16 @@ const Chat = () => {
   const messagesEndRef = useRef(null);
   const [pacienteId, setPacienteId] = useState(null);
 
-  // Buscar paciente_id do usuário logado
+  // Buscar paciente_id do usuário logado - CORRIGIDO
   useEffect(() => {
     async function fetchPacienteId() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const usuario = await userService.getByAuthId(user.id);
-        if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
-          setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const usuario = await userService.getByAuthId(user.id);
+          if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
+            setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
+          }
         }
       } catch (error) {
         console.error('Erro ao buscar paciente:', error);
