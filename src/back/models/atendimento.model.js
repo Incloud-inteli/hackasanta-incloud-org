@@ -5,11 +5,14 @@ function createAtendimentoModel() {
   return {
     // Busca todos os atendimentos DE UM PACIENTE ESPECÍFICO
     async getAllByPacienteId(pacienteId) {
-      const { data, error } = await supabase
-        .from('Atendimentos')
-        .select('*')
-        .eq('ID_Paciente', pacienteId)
-        .order('DataHoraAgendamento', { ascending: false });
+  // Garante que pacienteId é numérico
+  const pacienteIdNum = Number(pacienteId);
+  if (isNaN(pacienteIdNum)) throw new Error('ID do paciente inválido (deve ser numérico)');
+  const { data, error } = await supabase
+    .from('atendimentos')
+    .select('*')
+    .eq('paciente_id', pacienteIdNum)
+    .order('data_hora_agendamento', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -17,11 +20,11 @@ function createAtendimentoModel() {
 
     // Busca um único atendimento pelo seu ID
     async getById(id) {
-      const { data, error } = await supabase
-        .from('Atendimentos')
-        .select('*')
-        .eq('ID_Atendimento', id)
-        .single();
+  const { data, error } = await supabase
+  .from('atendimentos')
+    .select('*')
+    .eq('id', id)
+    .single();
 
       if (error) throw error;
       return data;
@@ -29,16 +32,19 @@ function createAtendimentoModel() {
 
     // Cria um novo atendimento
     async create(atendimentoData) {
+      // Garante que pacienteId é numérico
+      const pacienteIdNum = Number(atendimentoData.pacienteId);
+      if (isNaN(pacienteIdNum)) throw new Error('ID do paciente inválido (deve ser numérico)');
       const novoAtendimento = {
-        ID_Paciente: atendimentoData.pacienteId,
-        DataHoraAgendamento: new Date().toISOString(),
-        Tipo: atendimentoData.tipo,
-        Status: atendimentoData.status,
-        ObservacoesProfissional: atendimentoData.observacoesProfissional
+        paciente_id: pacienteIdNum,
+        data_hora_agendamento: new Date().toISOString(),
+        tipo: atendimentoData.tipo,
+        status: atendimentoData.status,
+        observacoes: atendimentoData.observacoesProfissional
       };
 
       const { data, error } = await supabase
-        .from('Atendimentos')
+        .from('atendimentos')
         .insert([novoAtendimento])
         .select()
         .single();
@@ -50,13 +56,13 @@ function createAtendimentoModel() {
     // Atualiza um atendimento
     async updateById(id, updateData) {
       const { data, error } = await supabase
-        .from('Atendimentos')
+        .from('atendimentos')
         .update({
-          Status: updateData.status,
-          ObservacoesProfissional: updateData.observacoesProfissional,
-          DataHoraRealizacao: updateData.dataHoraRealizacao
+          status: updateData.status,
+          observacoes: updateData.observacoesProfissional,
+          data_hora_realizacao: updateData.dataHoraRealizacao
         })
-        .eq('ID_Atendimento', id)
+        .eq('id', id)
         .select();
 
       if (error) throw error;
@@ -66,9 +72,9 @@ function createAtendimentoModel() {
     // Deleta um atendimento pelo ID
     async deleteById(id) {
       const { error } = await supabase
-        .from('Atendimentos')
+        .from('atendimentos')
         .delete()
-        .eq('ID_Atendimento', id);
+        .eq('id', id);
 
       if (error) throw error;
       return { success: true };

@@ -51,9 +51,20 @@ async function updateChatHistory(session_id, historico) {
   return data[0];
 }
 
+
+// Deleta uma sessão de chat
+async function deleteChatSession(session_id) {
+  const { error } = await supabase
+    .from('historico_chat')
+    .delete()
+    .eq('id', session_id);
+  if (error) throw error;
+}
+
 module.exports = {
   createChatSession,
   listChatSessions,
   getChatHistory,
   updateChatHistory,
+  deleteChatSession,
 };

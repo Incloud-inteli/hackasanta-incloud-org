@@ -1,23 +1,22 @@
 // back/models/user.model.js
+
 const { supabase } = require('../services/supabaseClient');
 
 function createUserModel() {
   return {
-    // Cria um novo usuário no sistema
+
+    // Cria um novo perfil de usuário no sistema
     async create(userData) {
-      const novoUsuario = {
-        Email: userData.email,
-        SenhaHash: userData.senhaHash,
-        AuthExternaID: userData.authExternaId,
-        NomeCompleto: userData.nomeCompleto,
-        CPF: userData.cpf,
-        Telefone: userData.telefone,
-        DataCadastroSistema: new Date().toISOString()
+      const novoPerfil = {
+        id: userData.id, // UUID do auth
+        nome_completo: userData.nomeCompleto,
+        cpf: userData.cpf,
+        telefone: userData.telefone
       };
 
       const { data, error } = await supabase
-        .from('UsuariosSistema')
-        .insert([novoUsuario])
+        .from('perfis')
+        .insert([novoPerfil])
         .select()
         .single();
 
@@ -25,12 +24,12 @@ function createUserModel() {
       return data;
     },
 
-    // Busca um usuário pelo ID do Supabase Auth
+    // Busca um perfil pelo ID do Supabase Auth
     async findByAuthId(authId) {
       const { data, error } = await supabase
-        .from('UsuariosSistema')
+        .from('perfis')
         .select('*')
-        .eq('AuthExternaID', authId)
+        .eq('id', authId)
         .single();
 
       if (error && error.code !== 'PGRST116') throw error; // Ignora erro de não encontrado

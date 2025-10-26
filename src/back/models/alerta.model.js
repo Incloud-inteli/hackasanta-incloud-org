@@ -4,12 +4,18 @@ const { supabase } = require('../services/supabaseClient');
 function createAlertaModel() {
   return {
     // Busca todos os alertas de um paciente específico
+
     async getAllByPacienteId(pacienteId) {
+      // Garante que pacienteId é numérico e definido
+      const pacienteIdNum = Number(pacienteId);
+      if (!pacienteId || isNaN(pacienteIdNum)) {
+        throw new Error('ID do paciente inválido (deve ser numérico e definido)');
+      }
       const { data, error } = await supabase
-        .from('Alertas')
+        .from('alertas')
         .select('*')
-        .eq('ID_Paciente', pacienteId)
-        .order('DataHoraGeracao', { ascending: false });
+        .eq('paciente_id', pacienteIdNum)
+        .order('data_hora_geracao', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -18,9 +24,9 @@ function createAlertaModel() {
     // Busca todos os alertas (geral, pode ser útil para um dashboard administrativo)
     async getAll() {
       const { data, error } = await supabase
-        .from('Alertas')
+  .from('alertas')
         .select('*')
-        .order('DataHoraGeracao', { ascending: false });
+  .order('data_hora_geracao', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -29,7 +35,7 @@ function createAlertaModel() {
     // Busca um único alerta pelo seu ID
     async getById(id) {
       const { data, error } = await supabase
-        .from('Alertas')
+  .from('alertas')
         .select('*')
         .eq('ID_Alerta', id)
         .single();
@@ -41,16 +47,16 @@ function createAlertaModel() {
     // Cria um novo alerta
     async create(alertaData) {
       const novoAlerta = {
-        ID_Paciente: alertaData.pacienteId,
+  paciente_id: alertaData.pacienteId,
         ID_Atendimento_Origem: alertaData.atendimentoId,
         Motivo: alertaData.motivo,
         NivelRisco: alertaData.nivelRisco,
         Status: alertaData.status,
-        DataHoraGeracao: new Date().toISOString()
+  data_hora_geracao: new Date().toISOString()
       };
 
       const { data, error } = await supabase
-        .from('Alertas')
+  .from('alertas')
         .insert([novoAlerta])
         .select()
         .single();
@@ -62,7 +68,7 @@ function createAlertaModel() {
     // Atualiza um alerta (ex: para mudar o status de 'Pendente' para 'Resolvido')
     async updateById(id, updateData) {
       const { data, error } = await supabase
-        .from('Alertas')
+        .from('alertas')
         .update({
           Status: updateData.status,
           NivelRisco: updateData.nivelRisco,
