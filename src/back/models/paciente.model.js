@@ -30,7 +30,7 @@ function createPacienteModel() {
       };
 
       const { data, error } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .insert([novoPaciente])
         .select()
         .single();
@@ -41,7 +41,7 @@ function createPacienteModel() {
 
     async getAll() {
       const { data, error } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .select('*');
 
       if (error) throw error;
@@ -51,36 +51,48 @@ function createPacienteModel() {
     async findByAuthId(userId) {
       // Busca pacientes diretos (onde o usuário é o próprio paciente)
       const { data: pacienteDireto, error: errorPaciente } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .select('*')
         .eq('ID_UsuarioSistema', userId);
 
-      if (errorPaciente) throw errorPaciente;
+      if (errorPaciente) {
+        console.error('Erro ao buscar paciente direto:', errorPaciente);
+        throw errorPaciente;
+      }
 
       // Busca pacientes onde o usuário é responsável
       const { data: responsaveis, error: errorResponsaveis } = await supabase
-        .from('Paciente_Responsavel')
+        .from('paciente_responsavel')
         .select(`
           *,
-          Pacientes (*)
+          pacientes (*)
         `)
         .eq('ID_Responsavel', userId);
 
-      if (errorResponsaveis) throw errorResponsaveis;
+      if (errorResponsaveis) {
+        console.error('Erro ao buscar pacientes como responsável:', errorResponsaveis);
+        throw errorResponsaveis;
+      }
+
+      // Debug: logar dados intermediários
+      console.log('pacienteDireto:', pacienteDireto);
+      console.log('responsaveis:', responsaveis);
 
       // Combina os resultados
       const pacientes = [
         ...(pacienteDireto || []),
-        ...(responsaveis?.map(r => r.Pacientes) || [])
+        ...(responsaveis?.map(r => r.pacientes) || [])
       ];
 
       // Remove duplicatas
-      return [...new Map(pacientes.map(item => [item.ID_Paciente, item])).values()];
+      const pacientesUnicos = [...new Map(pacientes.map(item => [item.ID_Paciente, item])).values()];
+      console.log('pacientesUnicos:', pacientesUnicos);
+      return pacientesUnicos;
     },
 
     async getById(id) {
       const { data, error } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .select('*')
         .eq('ID_Paciente', id)
         .single();
@@ -91,7 +103,7 @@ function createPacienteModel() {
 
     async updateById(id, updateData) {
       const { data, error } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .update({
           NomeCompleto: updateData.nomeCompleto,
           DataNascimento: updateData.dataNascimento,
@@ -123,7 +135,7 @@ function createPacienteModel() {
 
     async deleteById(id) {
       const { error } = await supabase
-        .from('Pacientes')
+  .from('pacientes')
         .delete()
         .eq('ID_Paciente', id);
 
