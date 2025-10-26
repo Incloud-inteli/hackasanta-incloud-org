@@ -10,6 +10,7 @@ import {
 } from '../../../services/chatHistory';
 import { supabase } from '../../../services/supabaseClient';
 import userService from '../../../services/userService';
+import pacienteService from '../../../services/pacienteService';
 import './Chat.css';
 
 
@@ -28,12 +29,24 @@ const Chat = () => {
   // Buscar paciente_id do usuário logado
   useEffect(() => {
     async function fetchPacienteId() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const usuario = await userService.getById(user.id);
-        if (usuario && usuario.pacientes && usuario.pacientes.length > 0) {
-          setPacienteId(usuario.pacientes[0].id || usuario.pacientes[0]._id);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          console.log('Usuário autenticado:', user.id);
+          // Buscar pacientes do usuário usando o pacienteService
+          const pacientes = await pacienteService.getByUserId(user.id);
+          console.log('Pacientes encontrados:', pacientes);
+          if (pacientes && pacientes.length > 0) {
+            setPacienteId(pacientes[0].ID_Paciente || pacientes[0].id);
+            console.log('Paciente ID definido:', pacientes[0].ID_Paciente || pacientes[0].id);
+          } else {
+            console.log('Nenhum paciente encontrado para o usuário');
+          }
+        } else {
+          console.log('Usuário não autenticado');
         }
+      } catch (error) {
+        console.error('Erro ao buscar paciente:', error);
       }
     }
     fetchPacienteId();
@@ -229,19 +242,36 @@ const Chat = () => {
 
       {/* Lista de sessões */}
       <div className="chat-sessions-list">
-        <strong>Conversas anteriores:</strong>
-        <ul>
-          {sessions.map((session) => (
-            <li key={session.id}>
-              <button
-                className={session.id === selectedSession ? 'active' : ''}
-                onClick={() => setSelectedSession(session.id)}
-              >
-                Sessão {session.id} - {new Date(session.created_at).toLocaleString()}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <strong>💬 Conversas anteriores</strong>
+        {sessions.length > 0 ? (
+          <ul>
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <button
+                  className={session.id === selectedSession ? 'active' : ''}
+                  onClick={() => setSelectedSession(session.id)}
+                >
+                  <span>
+                    📝 Sessão {session.id}
+                    <span className="session-date">
+                      {new Date(session.created_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="empty-sessions">
+            Nenhuma conversa anterior encontrada
+          </div>
+        )}
       </div>
 
       {error && (

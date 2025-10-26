@@ -1,9 +1,10 @@
 .chat-page {
   padding: 40px;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
 .chat-header-wrapper {
@@ -49,13 +50,15 @@
 
 .chat-container {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   padding: 30px;
   height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
 }
 
 .messages-area {
@@ -522,6 +525,132 @@
 
 .modal-btn:active {
   transform: translateY(0);
+}
+
+/* Chat Sessions List */
+.chat-sessions-list {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+.chat-sessions-list strong {
+  color: #374151;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.chat-sessions-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-sessions-list li {
+  margin: 0;
+}
+
+.chat-sessions-list button {
+  width: 100%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.chat-sessions-list button:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chat-sessions-list button.active {
+  background: #5b6fd8;
+  border-color: #5b6fd8;
+  color: white;
+  box-shadow: 0 2px 8px rgba(91, 111, 216, 0.3);
+}
+
+.chat-sessions-list button.active:hover {
+  background: #4a5ac7;
+  border-color: #4a5ac7;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(91, 111, 216, 0.4);
+}
+
+.chat-sessions-list button::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #5b6fd8;
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+.chat-sessions-list button.active::before {
+  transform: scaleY(1);
+}
+
+.chat-sessions-list button:active {
+  transform: translateY(0);
+}
+
+/* Empty sessions state */
+.chat-sessions-list .empty-sessions {
+  text-align: center;
+  color: #9ca3af;
+  font-style: italic;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Session date formatting */
+.chat-sessions-list .session-date {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-left: 8px;
+}
+
+.chat-sessions-list button.active .session-date {
+  opacity: 0.9;
+}
+
+/* Responsive Sessions */
+@media (max-width: 768px) {
+  .chat-sessions-list {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .chat-sessions-list button {
+    padding: 10px 14px;
+    font-size: 0.85rem;
+  }
 }
 
 /* Responsive Modal */
