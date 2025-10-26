@@ -1,10 +1,9 @@
 const express = require('express');
-const { ObjectId } = require('mongodb');
 const createProntuarioModel = require('../models/prontuario.model.js');
 
-function createProntuarioRoutes(db) {
+function createProntuarioRoutes() {
   const router = express.Router();
-  const model = createProntuarioModel(db);
+  const model = createProntuarioModel();
 
   /**
    * Rota para buscar um prontuário pelo ID do paciente.
@@ -13,15 +12,16 @@ function createProntuarioRoutes(db) {
   router.get('/', async (req, res) => {
     try {
       const { pacienteId } = req.query;
-      if (!pacienteId || !ObjectId.isValid(pacienteId)) {
-        return res.status(400).json({ error: 'O parâmetro "pacienteId" é obrigatório e precisa ser um ID válido.' });
+      if (!pacienteId) {
+        return res.status(400).json({ error: 'O parâmetro "pacienteId" é obrigatório.' });
       }
       const prontuario = await model.getByPacienteId(pacienteId);
       prontuario
         ? res.status(200).json(prontuario)
         : res.status(404).json({ message: 'Prontuário não encontrado para este paciente.' });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      console.error('Erro ao buscar prontuário:', err);
+      res.status(500).json({ error: 'Erro ao buscar prontuário' });
     }
   });
 
@@ -30,56 +30,54 @@ function createProntuarioRoutes(db) {
    */
   router.post('/', async (req, res) => {
     try {
-      const { pacienteId, resumoGeralSaude, dataUltimaAtualizacao, versao } = req.body;
+      const { pacienteId, resumoGeralSaude } = req.body;
 
-      if (!pacienteId || !ObjectId.isValid(pacienteId)) {
-        return res.status(400).json({ error: 'O campo "pacienteId" é obrigatório e precisa ser um ID válido.' });
+      if (!pacienteId) {
+        return res.status(400).json({ error: 'O campo "pacienteId" é obrigatório.' });
       }
 
-      // Garante que os dados estão nos tipos corretos antes de salvar
-      const novoProntuario = {
-        pacienteId: new ObjectId(pacienteId),
-        resumoGeralSaude: resumoGeralSaude || 'A preencher',
-        dataUltimaAtualizacao: dataUltimaAtualizacao ? new Date(dataUltimaAtualizacao) : new Date(),
-        versao: versao || 1
-      };
+      const prontuario = await model.create({
+        pacienteId,
+        resumoGeralSaude: resumoGeralSaude || 'A preencher'
+      });
 
-      const result = await model.create(novoProntuario);
-      res.status(201).json({ message: "Prontuário criado com sucesso!", insertedId: result.insertedId });
+      res.status(201).json({ 
+        message: "Prontuário criado com sucesso!", 
+        prontuario 
+      });
     } catch (err) {
       console.error('Erro ao criar prontuário:', err);
-      res.status(500).json({ error: err.message });
+      res.status(500).json({ error: 'Erro ao criar prontuário' });
     }
   });
 
   /**
-   * Rota para atualizar um prontuário pelo seu _id.
+   * Rota para atualizar um prontuário pelo seu ID.
    */
   router.put('/:id', async (req, res) => {
     try {
-        const { id } = req.params;
-        if (!ObjectId.isValid(id)) {
-            return res.status(400).json({ error: "ID de prontuário inválido."});
-        }
-        
-        const updateData = {};
-        if (req.body.resumoGeralSaude) {
-            updateData.resumoGeralSaude = req.body.resumoGeralSaude;
-        }
-        // Sempre atualiza a data da última modificação para o momento atual
-        updateData.dataUltimaAtualizacao = new Date();
-        if (req.body.versao) {
-            updateData.versao = req.body.versao;
-        }
+      const { id } = req.params;
+      const { resumoGeralSaude } = req.body;
 
-        const atualizado = await model.update(id, updateData);
+      if (!resumoGeralSaude) {
+        return res.status(400).json({ error: 'O campo "resumoGeralSaude" é obrigatório.' });
+      }
 
-        atualizado
-            ? res.json({ message: 'Prontuário atualizado com sucesso' })
-            : res.status(404).json({ message: 'Prontuário não encontrado' });
+      const prontuario = await model.update(id, {
+        resumoGeralSaude
+      });
+
+      if (prontuario) {
+        res.status(200).json({ 
+          message: 'Prontuário atualizado com sucesso',
+          prontuario
+        });
+      } else {
+        res.status(404).json({ message: 'Prontuário não encontrado' });
+      }
     } catch (err) {
-        console.error('Erro ao atualizar prontuário:', err);
-        res.status(500).json({ error: err.message });
+      console.error('Erro ao atualizar prontuário:', err);
+      res.status(500).json({ error: 'Erro ao atualizar prontuário' });
     }
   });
 

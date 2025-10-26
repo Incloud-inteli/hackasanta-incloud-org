@@ -1,38 +1,105 @@
 // back/models/responsavel.model.js
+const { supabase } = require('../services/supabaseClient');
 
-const { ObjectId } = require('mongodb');
-
-function createResponsavelModel(db) {
-  const collection = db.collection('responsaveis');
-
+function createResponsavelModel() {
   return {
     // Busca todos os responsáveis
     async getAll() {
-      return await collection.find({}).toArray();
+      const { data, error } = await supabase
+        .from('Responsaveis')
+        .select('*');
+
+      if (error) throw error;
+      return data;
     },
 
     // Busca um único responsável pelo seu ID
     async getById(id) {
-      return await collection.findOne({ _id: new ObjectId(id) });
+      const { data, error } = await supabase
+        .from('Responsaveis')
+        .select('*')
+        .eq('ID_Responsavel', id)
+        .single();
+
+      if (error) throw error;
+      return data;
     },
 
     // Cria um novo responsável
     async create(responsavelData) {
-      return await collection.insertOne(responsavelData);
+      const novoResponsavel = {
+        ID_UsuarioSistema: responsavelData.userId,
+        NomeCompleto: responsavelData.nomeCompleto,
+        TelefoneContato: responsavelData.telefone,
+        Email: responsavelData.email
+      };
+
+      const { data, error } = await supabase
+        .from('Responsaveis')
+        .insert([novoResponsavel])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+
+    // Vincula um responsável a um paciente
+    async vincularPaciente(responsavelId, pacienteId, parentesco) {
+      const { data, error } = await supabase
+        .from('Paciente_Responsavel')
+        .insert([{
+          ID_Paciente: pacienteId,
+          ID_Responsavel: responsavelId,
+          Parentesco: parentesco
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
 
     // Atualiza um responsável pelo ID
     async updateById(id, updateData) {
-      return await collection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: updateData }
-      );
+      const { data, error } = await supabase
+        .from('Responsaveis')
+        .update({
+          NomeCompleto: updateData.nomeCompleto,
+          TelefoneContato: updateData.telefone,
+          Email: updateData.email
+        })
+        .eq('ID_Responsavel', id)
+        .select();
+
+      if (error) throw error;
+      return data;
     },
 
     // Deleta um responsável pelo ID
     async deleteById(id) {
-      return await collection.deleteOne({ _id: new ObjectId(id) });
+      const { error } = await supabase
+        .from('Responsaveis')
+        .delete()
+        .eq('ID_Responsavel', id);
+
+      if (error) throw error;
+      return { success: true };
     },
+
+    // Remove vínculo entre responsável e paciente
+    async desvincularPaciente(responsavelId, pacienteId) {
+      const { error } = await supabase
+        .from('Paciente_Responsavel')
+        .delete()
+        .match({
+          ID_Paciente: pacienteId,
+          ID_Responsavel: responsavelId
+        });
+
+      if (error) throw error;
+      return { success: true };
+    }
   };
 }
 

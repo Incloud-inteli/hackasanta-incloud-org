@@ -1,34 +1,68 @@
-module.exports = (db) => {
-  const collection = db.collection('transcritores');
+const { supabase } = require('../services/supabaseClient');
 
+function createTranscritorModel() {
   return {
     async getAll() {
-      return await collection.find().toArray();
+      const { data, error } = await supabase
+        .from('Transcritores')
+        .select('*');
+
+      if (error) throw error;
+      return data;
     },
 
     async getById(id) {
-      const { ObjectId } = require('mongodb');
-      return await collection.findOne({ _id: new ObjectId(id) });
+      const { data, error } = await supabase
+        .from('Transcritores')
+        .select('*')
+        .eq('ID_Transcricao', id)
+        .single();
+
+      if (error) throw error;
+      return data;
     },
 
     async create(transcritor) {
-      const result = await collection.insertOne(transcritor);
-      return result.ops ? result.ops[0] : { _id: result.insertedId, ...transcritor };
+      const novaTranscricao = {
+        ID_Atendimento: transcritor.atendimentoId,
+        Conteudo: transcritor.conteudo,
+        DataHoraRegistro: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('Transcritores')
+        .insert([novaTranscricao])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
 
-    async update(id, data) {
-      const { ObjectId } = require('mongodb');
-      const result = await collection.updateOne(
-        { _id: new ObjectId(id) },
-        { $set: data }
-      );
-      return result.modifiedCount > 0;
+    async update(id, updateData) {
+      const { data, error } = await supabase
+        .from('Transcritores')
+        .update({
+          Conteudo: updateData.conteudo,
+          DataHoraRegistro: new Date().toISOString()
+        })
+        .eq('ID_Transcricao', id)
+        .select();
+
+      if (error) throw error;
+      return data;
     },
 
     async delete(id) {
-      const { ObjectId } = require('mongodb');
-      const result = await collection.deleteOne({ _id: new ObjectId(id) });
-      return result.deletedCount > 0;
+      const { error } = await supabase
+        .from('Transcritores')
+        .delete()
+        .eq('ID_Transcricao', id);
+
+      if (error) throw error;
+      return { success: true };
     }
   };
-};
+}
+
+module.exports = createTranscritorModel;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../../services/supabaseClient';
+// Registration now goes through our backend to use the service role safely
 import './Cadastro.css';
 
 const Cadastro = () => {
@@ -14,9 +14,37 @@ const Cadastro = () => {
     confirmarSenha: ''
   });
   const [loading, setLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+
+  // Máscara automática para CPF
+  function formatCPF(value) {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+      .slice(0, 14);
+  }
+
+  // Máscara automática para telefone
+  function formatTelefone(value) {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{5})(\d)/, '$1-$2')
+      .slice(0, 15);
+  }
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === 'cpf') {
+      value = formatCPF(value);
+    }
+    if (name === 'telefone') {
+      value = formatTelefone(value);
+    }
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleSubmit = async (e) => {
@@ -31,46 +59,38 @@ const Cadastro = () => {
     console.log('[CADASTRO] Iniciando cadastro...', formData.email);
 
     try {
-      // 1️⃣ Cria o usuário no Supabase (autenticação)
-      const { data, error } = await supabase.auth.signUp({
+      // 1️⃣ Envia os dados para o backend, que cria o usuário via Service Role Key
+      const registerPayload = {
         email: formData.email,
         password: formData.senha,
+        nomeCompleto: formData.nomeCompleto,
+        cpf: formData.cpf,
+        telefone: formData.telefone
+      };
+
+      const response = await fetch('http://localhost:3001/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(registerPayload),
       });
 
-      if (error) {
-        console.error('[CADASTRO] Erro Supabase:', error);
-        alert(`Erro ao cadastrar: ${error.message}`);
+      if (!response.ok) {
+        const json = await response.json().catch(() => null);
+        const text = json?.error || json?.message || (await response.text());
+        console.error('[CADASTRO] Erro do backend:', text);
+        alert(`Erro ao cadastrar: ${text}`);
         setLoading(false);
         return;
       }
 
-      console.log('[CADASTRO] Usuário criado no Supabase:', data?.user?.id);
+      const resBody = await response.json();
+      console.log('[CADASTRO] Usuário criado via backend:', resBody);
 
-      // 2️⃣ Envia os dados complementares para o backend (MongoDB)
-      const userData = {
-        supabaseId: data?.user?.id,
-        nomeCompleto: formData.nomeCompleto,
-        cpf: formData.cpf,
-        email: formData.email,
-        telefone: formData.telefone,
-        criadoEm: new Date(),
-      };
-
-      const response = await fetch('http://localhost:3001/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Erro no servidor: ${text}`);
-      }
-
-      console.log('[CADASTRO] Usuário salvo no banco com sucesso.');
-      alert('Usuário cadastrado com sucesso! Verifique seu email se for necessário confirmar.');
-
-      navigate('/login');
+      setShowSuccessModal(true);
+      setTimeout(() => {
+        setShowSuccessModal(false);
+        navigate('/login');
+      }, 3500);
     } catch (err) {
       console.error('[CADASTRO] Erro geral:', err);
       alert('Erro inesperado ao cadastrar. Veja o console.');
@@ -109,6 +129,7 @@ const Cadastro = () => {
               value={formData.nomeCompleto}
               onChange={handleChange}
               required
+              placeholder="Ex: Maria da Silva"
             />
           </div>
 
@@ -119,8 +140,11 @@ const Cadastro = () => {
               name="cpf"
               value={formData.cpf}
               onChange={handleChange}
-              placeholder="000.000.000-00"
+              placeholder="Ex: 123.456.789-00"
+              pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
+              title="Digite o CPF no formato 000.000.000-00"
               required
+              maxLength={14}
             />
           </div>
 
@@ -132,6 +156,7 @@ const Cadastro = () => {
               value={formData.email}
               onChange={handleChange}
               required
+              placeholder="Ex: usuario@email.com"
             />
           </div>
 
@@ -142,8 +167,11 @@ const Cadastro = () => {
               name="telefone"
               value={formData.telefone}
               onChange={handleChange}
-              placeholder="(00) 00000-0000"
+              placeholder="Ex: (11) 91234-5678"
+              pattern="\(\d{2}\) \d{5}-\d{4}"
+              title="Digite o telefone no formato (11) 91234-5678"
               required
+              maxLength={15}
             />
           </div>
 
@@ -155,6 +183,7 @@ const Cadastro = () => {
               value={formData.senha}
               onChange={handleChange}
               required
+              placeholder="Mínimo 6 caracteres"
             />
           </div>
 
@@ -166,6 +195,7 @@ const Cadastro = () => {
               value={formData.confirmarSenha}
               onChange={handleChange}
               required
+              placeholder="Repita a senha"
             />
           </div>
 
@@ -177,6 +207,38 @@ const Cadastro = () => {
             <a href="/login" className="voltar-link">← Voltar</a>
           </div>
         </form>
+
+        {showSuccessModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}>
+            <div style={{
+              background: '#fff',
+              borderRadius: 16,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+              padding: '2.5rem 2rem',
+              maxWidth: 350,
+              textAlign: 'center',
+              color: '#234',
+              fontFamily: 'inherit',
+              animation: 'fadeIn .3s'
+            }}>
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" style={{marginBottom: 12}}><circle cx="12" cy="12" r="12" fill="#e6f7ee"/><path d="M8 12.5l3 3 5-5" stroke="#2ecc71" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <h2 style={{margin: '0 0 0.5rem 0', color: '#2ecc71'}}>Cadastro realizado!</h2>
+              <div style={{fontSize: 16, marginBottom: 8}}>Sua conta foi criada com sucesso.</div>
+              <div style={{fontSize: 14, color: '#555'}}>Confira sua caixa de entrada (e também o spam) para ativar o acesso pelo link enviado por email.</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

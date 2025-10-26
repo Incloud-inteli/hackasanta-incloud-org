@@ -1,29 +1,78 @@
-// back/models/user.model.js - VERSÃO PADRONIZADA COM DRIVER NATIVO
+// back/models/user.model.js
+const { supabase } = require('../services/supabaseClient');
 
-const { ObjectId } = require('mongodb');
-
-function createUserModel(db) {
-  const collection = db.collection('users'); // O nome da sua collection
-
+function createUserModel() {
   return {
-    // Cria um novo usuário
+    // Cria um novo usuário no sistema
     async create(userData) {
-      return await collection.insertOne(userData);
+      const novoUsuario = {
+        Email: userData.email,
+        SenhaHash: userData.senhaHash,
+        AuthExternaID: userData.authExternaId,
+        NomeCompleto: userData.nomeCompleto,
+        CPF: userData.cpf,
+        Telefone: userData.telefone,
+        DataCadastroSistema: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('UsuariosSistema')
+        .insert([novoUsuario])
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
     },
 
-    // Busca um usuário pelo ID do Supabase
-    async findBySupabaseId(supabaseUserId) {
-      return await collection.findOne({ supabaseUserId: supabaseUserId });
+    // Busca um usuário pelo ID do Supabase Auth
+    async findByAuthId(authId) {
+      const { data, error } = await supabase
+        .from('UsuariosSistema')
+        .select('*')
+        .eq('AuthExternaID', authId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error; // Ignora erro de não encontrado
+      return data;
     },
 
-    // Busca um usuário pelo ID do MongoDB
+    // Busca um usuário pelo ID interno
     async getById(id) {
-      return await collection.findOne({ _id: new ObjectId(id) });
+      const { data, error } = await supabase
+        .from('UsuariosSistema')
+        .select('*')
+        .eq('ID_UsuarioSistema', id)
+        .single();
+
+      if (error) throw error;
+      return data;
     },
     
     // Busca todos os usuários
     async getAll() {
-        return await collection.find({}).toArray();
+      const { data, error } = await supabase
+        .from('UsuariosSistema')
+        .select('*');
+
+      if (error) throw error;
+      return data;
+    },
+
+    // Atualiza um usuário
+    async update(id, updateData) {
+      const { data, error } = await supabase
+        .from('UsuariosSistema')
+        .update({
+          Email: updateData.email,
+          NomeCompleto: updateData.nomeCompleto,
+          Telefone: updateData.telefone
+        })
+        .eq('ID_UsuarioSistema', id)
+        .select();
+
+      if (error) throw error;
+      return data;
     }
   };
 }

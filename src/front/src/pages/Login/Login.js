@@ -7,6 +7,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState(null);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,14 +29,14 @@ const Login = () => {
 
       if (error) {
         console.error('[LOGIN] Erro ao logar:', error);
-        alert(`Erro ao logar: ${error.message}`);
-        return;
+  setErrorModal(`Erro ao entrar: ${error.message}`);
+  return;
       }
 
       if (!data || !data.user) {
         console.warn('[LOGIN] Usuário não encontrado ou email não confirmado.');
-        alert('Usuário não encontrado ou email não confirmado.');
-        return;
+  setErrorModal('Usuário não encontrado ou e-mail não confirmado.');
+  return;
       }
 
       console.log('[LOGIN] Usuário logado:', data.user);
@@ -53,7 +54,7 @@ const Login = () => {
     } catch (err) {
       setLoading(false);
       console.error('[LOGIN] Erro inesperado:', err);
-      alert('Ocorreu um erro inesperado. Veja o console.');
+  setErrorModal('Ocorreu um erro inesperado. Veja o console para mais detalhes.');
     }
   };
 
@@ -111,6 +112,39 @@ const Login = () => {
             <p>Não tem uma conta? <a href="/cadastro">Cadastre-se</a></p>
           </div>
         </form>
+
+        {errorModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.35)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }} onClick={() => setErrorModal(null)}>
+            <div style={{
+              background: '#fff',
+              borderRadius: 16,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
+              padding: '2.5rem 2rem',
+              maxWidth: 350,
+              textAlign: 'center',
+              color: '#234',
+              fontFamily: 'inherit',
+              animation: 'fadeIn .3s',
+              cursor: 'pointer'
+            }}>
+              <svg width="48" height="48" fill="none" viewBox="0 0 24 24" style={{marginBottom: 12}}><circle cx="12" cy="12" r="12" fill="#ffeaea"/><path d="M8 8l8 8M16 8l-8 8" stroke="#e74c3c" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              <h2 style={{margin: '0 0 0.5rem 0', color: '#e74c3c'}}>Erro</h2>
+              <div style={{fontSize: 16, marginBottom: 8}}>{errorModal}</div>
+              <div style={{fontSize: 13, color: '#555'}}>Clique para fechar</div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
