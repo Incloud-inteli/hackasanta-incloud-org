@@ -5,6 +5,7 @@ const {
   listChatSessions,
   getChatHistory,
   updateChatHistory,
+  deleteChatSession,
 } = require('../services/chatHistoryService');
 
 // Cria nova sessão de chat
@@ -47,6 +48,17 @@ router.put('/session/:id', async (req, res) => {
     const { historico } = req.body;
     const updated = await updateChatHistory(id, historico);
     res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Deleta uma sessão de chat
+router.delete('/session/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await deleteChatSession(id);
+    res.status(204).send();
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

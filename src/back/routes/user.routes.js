@@ -23,16 +23,24 @@ function createUserRoutes() {
   router.get('/by-auth/:authId', async (req, res) => {
     try {
       const { authId } = req.params;
-      const user = await model.findByAuthId(authId);
-      
-      if (user) {
-        res.status(200).json(user);
-      } else {
-        res.status(404).json({ message: 'Usuário não encontrado' });
+      let user = await model.findByAuthId(authId);
+      if (!user) {
+        user = await model.create({
+          id: authId,
+          nomeCompleto: 'Novo Usuário',
+          cpf: '',
+          telefone: ''
+        });
       }
+      // Buscar pacientes vinculados a este usuário
+      const createPacienteModel = require('../models/paciente.model.js');
+      const pacienteModel = createPacienteModel();
+      const pacientes = await pacienteModel.findByAuthId(authId);
+      // Retornar perfil + pacientes
+      res.status(200).json({ ...user, pacientes });
     } catch (error) {
-      console.error("Erro ao buscar usuário por Auth ID:", error);
-      res.status(500).json({ error: 'Erro ao buscar usuário por Auth ID' });
+      console.error("Erro ao buscar/criar usuário por Auth ID:", error);
+      res.status(500).json({ error: 'Erro ao buscar/criar usuário por Auth ID' });
     }
   });
 

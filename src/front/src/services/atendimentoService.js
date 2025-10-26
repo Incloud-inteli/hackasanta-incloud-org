@@ -4,6 +4,10 @@ import api from './api';
 const atendimentoService = {
   // Buscar atendimentos de um paciente
   getByPacienteId: async (pacienteId) => {
+    if (!pacienteId) {
+      console.error('atendimentoService.getByPacienteId: pacienteId está undefined ou vazio!');
+      return [];
+    }
     const response = await api.get(`/atendimentos?pacienteId=${pacienteId}`);
     return response.data;
   },
