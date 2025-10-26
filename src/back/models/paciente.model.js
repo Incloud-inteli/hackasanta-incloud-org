@@ -3,30 +3,24 @@ const { supabase } = require('../services/supabaseClient');
 function createPacienteModel() {
   return {
     async create(pacienteData) {
+      // Debug: logar valor recebido
+      console.log('Recebido para criar paciente:', JSON.stringify(pacienteData, null, 2));
+      let dataNascimento = pacienteData.dadosPessoais?.dataNascimento;
+      if (typeof dataNascimento === 'string' && dataNascimento.trim() === '') {
+        dataNascimento = null;
+      }
       const novoPaciente = {
-        ID_UsuarioSistema: pacienteData.userId,
-        NomeCompleto: pacienteData.nomeCompleto,
-        DataNascimento: pacienteData.dataNascimento,
-        CPF: pacienteData.cpf,
-        Email: pacienteData.email,
-        CEP: pacienteData.cep,
-        TelefoneContato: pacienteData.telefone,
-        Genero: pacienteData.genero,
-        EnderecoCompleto: pacienteData.endereco,
-        EstadoCivil: pacienteData.estadoCivil,
-        Raca: pacienteData.raca,
-        Profissao: pacienteData.profissao,
-        TipoSanguineo: pacienteData.tipoSanguineo,
-        CirurgiasPrevias: pacienteData.cirurgiasPrevias,
-        Alergias: pacienteData.alergias,
-        InternacoesPrevias: pacienteData.internacoesPrevias,
-        DoencasCronicas: pacienteData.doencasCronicas,
-        ProblemasNascimento: pacienteData.problemasNascimento,
-        MedicamentosEmUso: pacienteData.medicamentosEmUso,
-        TratamentosAtuais: pacienteData.tratamentosAtuais,
-        HistoricoFamiliarCancer: pacienteData.historicoFamiliarCancer,
-        HistoricoFamiliarTipoCancer: pacienteData.historicoFamiliarTipoCancer,
-        DataCadastro: new Date().toISOString()
+        usuario_id: pacienteData.usuario_id,
+        nome_completo: pacienteData.dadosPessoais?.nomeCompleto || '',
+        data_nascimento: dataNascimento || null,
+        cpf: pacienteData.dadosPessoais?.cpf || '',
+        email: pacienteData.dadosPessoais?.email || '',
+        telefone_contato: pacienteData.dadosPessoais?.telefone || '',
+        dados_pessoais: pacienteData.dadosPessoais || {},
+        historico_medico: pacienteData.historicoMedico || {},
+        historico_familiar: pacienteData.historicoFamiliar || {},
+        form_type: pacienteData.formType || 'euMesmo',
+        parentesco: pacienteData.parentesco || null
       };
 
       const { data, error } = await supabase
@@ -53,7 +47,7 @@ function createPacienteModel() {
       const { data: pacienteDireto, error: errorPaciente } = await supabase
   .from('pacientes')
         .select('*')
-        .eq('ID_UsuarioSistema', userId);
+  .eq('usuario_id', userId);
 
       if (errorPaciente) {
         console.error('Erro ao buscar paciente direto:', errorPaciente);
@@ -67,7 +61,7 @@ function createPacienteModel() {
           *,
           pacientes (*)
         `)
-        .eq('ID_Responsavel', userId);
+  .eq('responsavel_id', userId);
 
       if (errorResponsaveis) {
         console.error('Erro ao buscar pacientes como responsável:', errorResponsaveis);
@@ -102,31 +96,29 @@ function createPacienteModel() {
     },
 
     async updateById(id, updateData) {
+      // Atualiza os campos JSON principais
+      // Extrai dados principais dos objetos aninhados
+      const dadosPessoais = updateData.dadosPessoais || {};
+      const historicoMedico = updateData.historicoMedico || {};
+      const historicoFamiliar = updateData.historicoFamiliar || {};
+      const formType = updateData.formType || null;
+      const parentesco = updateData.parentesco || null;
+
       const { data, error } = await supabase
-  .from('pacientes')
+        .from('pacientes')
         .update({
-          NomeCompleto: updateData.nomeCompleto,
-          DataNascimento: updateData.dataNascimento,
-          Email: updateData.email,
-          CEP: updateData.cep,
-          TelefoneContato: updateData.telefone,
-          Genero: updateData.genero,
-          EnderecoCompleto: updateData.endereco,
-          EstadoCivil: updateData.estadoCivil,
-          Raca: updateData.raca,
-          Profissao: updateData.profissao,
-          TipoSanguineo: updateData.tipoSanguineo,
-          CirurgiasPrevias: updateData.cirurgiasPrevias,
-          Alergias: updateData.alergias,
-          InternacoesPrevias: updateData.internacoesPrevias,
-          DoencasCronicas: updateData.doencasCronicas,
-          ProblemasNascimento: updateData.problemasNascimento,
-          MedicamentosEmUso: updateData.medicamentosEmUso,
-          TratamentosAtuais: updateData.tratamentosAtuais,
-          HistoricoFamiliarCancer: updateData.historicoFamiliarCancer,
-          HistoricoFamiliarTipoCancer: updateData.historicoFamiliarTipoCancer
+          nome_completo: dadosPessoais.nomeCompleto || '',
+          data_nascimento: dadosPessoais.dataNascimento || null,
+          cpf: dadosPessoais.cpf || '',
+          email: dadosPessoais.email || '',
+          telefone_contato: dadosPessoais.telefone || '',
+          dados_pessoais: dadosPessoais,
+          historico_medico: historicoMedico,
+          historico_familiar: historicoFamiliar,
+          form_type: formType,
+          parentesco: parentesco
         })
-        .eq('ID_Paciente', id)
+        .eq('id', id)
         .select();
 
       if (error) throw error;
